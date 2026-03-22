@@ -1,4 +1,5 @@
 import { StyleSheet, Button } from 'react-native'
+import { useState } from 'react'
 
 import Spacer from "../../components/Spacer"
 import ThemedText from "../../components/ThemedText"
@@ -22,6 +23,8 @@ async function requestPermissions() {
 
 // create tab page tasked with handling creating and editing information and reminders.
 const Create = () => {
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
 
   // test function to see if everything is mint
   async function scheduleTestNotification() {
