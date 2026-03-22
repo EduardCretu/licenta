@@ -79,6 +79,7 @@ const Login = () => {
 
             <Spacer height={100}/>
 
+            {/* rerouting to /login when pressed */}
             <Link href='/register'>
                 <ThemedText style={{ textAlign: "center" }}>
                     Dont have an account? register instead

@@ -10,7 +10,7 @@ import ThemedButton from '../../components/ThemedButton'
 
 import { Colors } from '../../constants/colors'
 
-
+// settings tab page tasked with handling account management
 const Settings = () => {
   const { isDark, toggleTheme, theme } = useTheme()
   const { user, logout, deleteAccount } = useUser()

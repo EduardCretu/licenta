@@ -13,7 +13,10 @@ import ThemedTextInput from '../../components/ThemedTextInput'
 
 import { Colors } from '../../constants/colors'
 
+///// SUBJECT TO CHANGE
 
+
+// Supposedly a page to send out a recovery email via appwrite. I dread this.
 const ForgotPassword = () => {
     const [email, setEmail] = useState('')
 

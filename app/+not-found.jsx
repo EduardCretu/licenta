@@ -2,6 +2,7 @@
 import { useRouter, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 
+// ''Page'' to reroute to /login since metro is flaky on me
 export default function NotFound() {
   const router = useRouter();
   const segments = useSegments();

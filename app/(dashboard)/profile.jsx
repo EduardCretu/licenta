@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native'
 
+// custom component imports
 import Spacer from "../../components/Spacer"
 import ThemedText from "../../components/ThemedText"
 import ThemedView from "../../components/ThemedView"
@@ -8,13 +9,13 @@ import ThemedLogo from '../../components/ThemedLogo'
 import ThemedHr from '../../components/ThemedHr'
 import UserDataLine from '../../components/UserDataLine'
 
-
+// state, hooks and context imports
 import { useUser } from '../../hooks/useUser'
 import { useState } from 'react'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useNavigation } from 'expo-router'
 
-
+// Profile tab page handling displaying user info
 const Profile = () => {
   const [editInfo, setEditInfo] = useState(false)
 
@@ -22,6 +23,7 @@ const Profile = () => {
   const { theme } = useTheme()
   const nav = useNavigation()
 
+  // func rerouting to 'create' page
   const handleEdit = () => {
     setEditInfo(!editInfo)
     nav.navigate('create')
@@ -48,7 +50,7 @@ const Profile = () => {
         </ThemedText>
         <Spacer height={20}/>
 
-
+        {/*vvvvvvvvv To be automated and tied to user-info db/json */}
         <UserDataLine title={"Full name"} userData={"placeholder name"}/>
         <UserDataLine title={"Date of Birth"} userData={"placeholder date"}/>
         <UserDataLine title={"Address"} userData={"placeholder address"}/>
@@ -64,8 +66,9 @@ const Profile = () => {
       </View>
 
       <Spacer />
-
-      <ThemedButton onPress={handleEdit}>
+      
+      {/* Button to 'handle the editing of user info */}
+      <ThemedButton onPress={handleEdit}> 
         <Text style={{color:'white',textAlign:'center'}}>Edit health information?</Text>
       </ThemedButton>
 

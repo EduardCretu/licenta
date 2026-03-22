@@ -40,9 +40,9 @@ export function UserProvider({ children }) {
       passwordAgain
     });
     // Optionally you can set user state here if you want auto-login
-  } catch (error) {
-    throw Error(error.message);
-  }
+    } catch (error) {
+      throw Error(error.message);
+    }
   }
 
   async function logout() {

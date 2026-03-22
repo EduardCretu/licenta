@@ -13,7 +13,8 @@ import ThemedTextInput from '../../components/ThemedTextInput'
 
 import { Colors } from '../../constants/colors'
 
-
+// auth page to register the user to appwrite auth
+// May change this to a local hash function to rid myself of the appwrite parasite
 const Register = () => {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
@@ -21,6 +22,7 @@ const Register = () => {
 
     const { register } = useUser()
 
+    // function that uses and calls appwrite 'register' function from their auth API
     const submitHandler = async () =>{
         setError(null)
         try {
@@ -33,11 +35,11 @@ const Register = () => {
     
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}> {/* <- Wraps whole page in a listener which dismisses the keyboard on pressing elsewhere*/}
         <ThemedView safe style={styles.container}>
             <Spacer/>
             <ThemedText title style={styles.title}>Register for an account</ThemedText>
-
+            {/* vv-- email input field. May change to usename*/}
             <ThemedTextInput 
             placeholder='Email' 
             style={styles.txtInput}
@@ -47,7 +49,7 @@ const Register = () => {
             onChangeText={setEmail}
             value={email}
             />
-
+            {/* vv-- password input field */}
             <ThemedTextInput 
             placeholder='Password' 
             style={styles.txtInput}
@@ -70,6 +72,7 @@ const Register = () => {
 
             <Spacer height={100}/>
 
+            {/* rerouting to /login when pressed */}
             <Link href='/login'>
                 <ThemedText style={{ textAlign: "center" }}>
                     Have an account already? Login instead

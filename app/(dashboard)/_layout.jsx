@@ -3,12 +3,14 @@ import { Ionicons } from '@expo/vector-icons'
 import UserOnly from '../../components/(auth)/UserOnly'
 import { useTheme } from '../../contexts/ThemeContext'
 
+// Layout of the Dashboard & Dashboard pages
 const DashboardLayout = () => {
+  // calling theme from context to paint dashboard elements in appropriate theme
   const { theme } = useTheme()
 
   return (
-    <UserOnly>
-      <Tabs
+    <UserOnly> 
+      <Tabs // General Tabs settings
         screenOptions={{
           headerShown: false,
           tabBarStyle: {
@@ -19,7 +21,7 @@ const DashboardLayout = () => {
           tabBarActiveTintColor: theme.iconColorFocused,
           tabBarInactiveTintColor: theme.iconColor,
         }}>
-        <Tabs.Screen
+        <Tabs.Screen // 'Tab; connected to specific /dashboard page
           name="reminders"
           options={{
             title: 'Reminders',
