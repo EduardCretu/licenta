@@ -33,9 +33,9 @@ const Register = () => {
         }
     }
     
-
+    // <- Wraps whole page in a listener which dismisses the keyboard on pressing elsewhere
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}> {/* <- Wraps whole page in a listener which dismisses the keyboard on pressing elsewhere*/}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ThemedView safe style={styles.container}>
             <Spacer/>
             <ThemedText title style={styles.title}>Register for an account</ThemedText>

@@ -3,9 +3,17 @@ import { StatusBar } from "expo-status-bar";
 import { UserProvider } from "../contexts/userContext";
 import { ThemeProvider } from "../contexts/ThemeContext";
 
+import { initNotifications }  from "../lib/notifications"
+import { useEffect } from "react";
+
+
 
 // Root Layout to route all pages and wrap everything in User & Theme providers.
 export default function RootLayout() {
+
+  useEffect(() => {
+    initNotifications();
+  }, [])
   return (
     <UserProvider> 
       <ThemeProvider>
