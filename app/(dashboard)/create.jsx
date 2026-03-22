@@ -4,6 +4,8 @@ import Spacer from "../../components/Spacer"
 import ThemedText from "../../components/ThemedText"
 import ThemedView from "../../components/ThemedView"
 
+
+// create tab page tasked with handling creating and editing information and reminders.
 const Create = () => {
   return (
     <ThemedView safe style={styles.container}>
