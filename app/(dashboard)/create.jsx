@@ -259,7 +259,7 @@ const Create = () => {
                     {/*if null, display text suggesting that user should pick notification type*/}
                     {(notificationType === null) && <ThemedText style={{margin: 20}}>Select A Notification Type</ThemedText>}
 
-                    {/*sub-dropdown fields, each only rendering when appropriat for the notification type*/}
+                    {/*sub-dropdown fields, each only rendering when appropriate for the notification type*/}
                     {(notificationType === 5) && <View style={[styles.fieldContainer, {backgroundColor: theme.uiBackground}]}>
                         <ThemedText style={styles.label}>
                             Month:
