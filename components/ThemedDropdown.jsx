@@ -18,6 +18,7 @@
       styleInputSearch,
       styleItemContainer,
       styleBaseContainer,
+      mode='default'
 
 
       }) => {
@@ -77,7 +78,12 @@
         ]}
         itemTextStyle={{ color: theme.text }}
         activeColor={theme.uiBackground}
-
+        mode={mode}
+        flatListProps={{
+            style: {
+                maxHeight: 500, // controls dropdown list height
+            }
+        }}
         autoScroll={false}
         data={data}
         search={showSearch}
