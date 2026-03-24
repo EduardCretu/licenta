@@ -1,17 +1,20 @@
 {
   "expo": {
     "scheme": "healthdoc",
-    "name": "HealthApp",
+    "name": "Health Doc",
     "slug": "HealthApp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/img/pibble.jpg",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#e0dfe8",
+      "dark" : {
+        "backgroundColor" : "#252231"
+      }
     },
     "ios": {
       "supportsTablet": true,
@@ -21,8 +24,8 @@
       "package": "com.nmlcode.healthdoc",
       "permissions" : ["SCHEDULE_EXACT_ALARM"],
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#e0dfe8"
       },
       "edgeToEdgeEnabled": true
     },
