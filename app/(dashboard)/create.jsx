@@ -1,7 +1,6 @@
 // dev related imports
 import React, { useState } from 'react'
 import { StyleSheet, Text, View, ScrollView, TouchableWithoutFeedback, Keyboard } from 'react-native'
-import { Platform } from 'react-native'
 // notification related imports
 import * as Notifications from 'expo-notifications'
 import { initNotifications } from "../../lib/notifications.js"
@@ -17,7 +16,7 @@ import ThemedDropdownComponent from "../../components/ThemedDropdown"
 import { Colors } from '../../constants/colors'
 
 // import data for dropdown menus from constants
-import { notificationTypeData, minuteData, hourData, weekdayData, monthData } from '../../constants/dropdownFields'
+import { notificationTypeData, minuteData, hourData, weekdayData, monthData, monthlyDayData } from '../../constants/dropdownFields'
 
 
 // async function to check & request system permissions for notifications
@@ -89,88 +88,93 @@ const Create = () => {
 
     // notification scheduler function
     async function scheduleNotification() {
-        // set error to null
-        setError(null)
-        // validate for errors and return
-        const error = validateNotificationForm()
-        // 'throw' error if error exists
-        if (error) {
-            setError(error)
-            return
-        }
-        // check notification type and schedule based on it
-        if (notificationType === 2) {
-            await Notifications.scheduleNotificationAsync({
-                content: {
-                    title,
-                    body,
-                },
-                trigger: {
-                    type: Notifications.SchedulableTriggerInputTypes.DAILY,
-                    hour,
-                    minute,
-                },
-            })
-            console.log('Daily notification set')
-        } else if (notificationType === 3) {
-            await Notifications.scheduleNotificationAsync({
-                content: {
-                    title,
-                    body,
-                },
-                trigger: {
-                    type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
-                    hour,
-                    minute,
-                    weekday,
-                },
-            })
-            console.log('Weekly notification set')
-        } else if (notificationType === 4) {
-            await Notifications.scheduleNotificationAsync({
-                content: {
-                    title,
-                    body,
-                },
-                trigger: {
-                    type: Notifications.SchedulableTriggerInputTypes.MONTHLY,
-                    hour,
-                    minute,
-                    day,
-                },
-            })
-            console.log('Monthly notification set')
-        } else if (notificationType === 5) {
-            // get current date
-            const now = new Date()
-            // get date based on dropdown fields
-            let date = new Date(new Date().getFullYear(), month-1, day, hour, minute, 0 )
-            // check if date has passed and schedule for following year if true
-            if (date <= now) {
-                date = new Date(now.getFullYear()+1, month-1, day, hour, minute, 0 )
+        try {
+            // set error to null
+            setError(null)
+            // validate for errors and return
+            const validateErr = validateNotificationForm()
+            // 'throw' error if error exists
+            if (validateErr) {
+                setError(validateErr)
+                return
             }
+            // check notification type and schedule based on it
+            if (notificationType === 2) {
+                await Notifications.scheduleNotificationAsync({
+                    content: {
+                        title,
+                        body,
+                    },
+                    trigger: {
+                        type: Notifications.SchedulableTriggerInputTypes.DAILY,
+                        hour,
+                        minute,
+                    },
+                })
+                console.log('Daily notification set')
+            } else if (notificationType === 3) {
+                await Notifications.scheduleNotificationAsync({
+                    content: {
+                        title,
+                        body,
+                    },
+                    trigger: {
+                        type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
+                        hour,
+                        minute,
+                        weekday,
+                    },
+                })
+                console.log('Weekly notification set')
+            } else if (notificationType === 4) {
+                await Notifications.scheduleNotificationAsync({
+                    content: {
+                        title,
+                        body,
+                    },
+                    trigger: {
+                        type: Notifications.SchedulableTriggerInputTypes.MONTHLY,
+                        hour,
+                        minute,
+                        day,
+                    },
+                })
+                console.log('Monthly notification set')
+            } else if (notificationType === 5) {
+                // get current date
+                const now = new Date()
+                // get date based on dropdown fields
+                let date = new Date(new Date().getFullYear(), month-1, day, hour, minute, 0 )
+                // check if date has passed and schedule for following year if true
+                if (date <= now) {
+                    date = new Date(now.getFullYear()+1, month-1, day, hour, minute, 0 )
+                }
 
-            await Notifications.scheduleNotificationAsync({
-                content: {
-                    title,
-                    body,
-                },
-                trigger: {
-                    type: Notifications.SchedulableTriggerInputTypes.DATE,
-                    date
-                },
-            })
-            console.log('One-time notification set')
+                await Notifications.scheduleNotificationAsync({
+                    content: {
+                        title,
+                        body,
+                    },
+                    trigger: {
+                        type: Notifications.SchedulableTriggerInputTypes.DATE,
+                        date
+                    },
+                })
+                console.log('One-time notification set')
+            }
+            // reset notification related consts
+            setNotificationType(null);
+            setHour(null);
+            setMinute(null);
+            setWeekday(null);
+            setDay(null);
+            setMonth(null);
+            setTitle('');
+            setBody('');
         }
-        // reset notification related consts
-        setNotificationType(null);
-        setHour(null);
-        setMinute(null);
-        setWeekday(null);
-        setDay(null);
-        setMonth(null);
-        setTitle('');
-        setBody('');
+        catch (err) {
+                setError("Failed to Schedule Notification")
+        }
     }
     // function to handle schedule submission
     async function handlePress() {
@@ -263,13 +267,15 @@ const Create = () => {
                         <ThemedDropdownComponent
                             data={monthData}
                             value={month}
+                            mode={'modal'}
                             onChange={(newValue, item) => {
                                 setMonth(newValue);
                                 // day array is calculated dynamically for accuracy,
                                 // thus needs resetting so no mismatch occurs
                                 setDay(null);
                             }}
-                            styleDropdown={{width: '50%', padding: 0}}
+                            styleDropdown={{width: '70%', padding: 0}}
+                            styleBaseContainer={{padding:5}}
                         />
                     </View>}
                     {(notificationType === 4 || notificationType === 5) && <View style={[styles.fieldContainer, {backgroundColor: theme.uiBackground}]}>
@@ -277,12 +283,14 @@ const Create = () => {
                             Day:
                         </ThemedText>
                         <ThemedDropdownComponent
-                            data={dayData}
+                            data={(notificationType === 4) ? monthlyDayData : dayData}
                             value={day}
+                            mode={'modal'}
                             onChange={(newValue, item) => {
                                 setDay(newValue);
                             }}
-                            styleDropdown={{width: '50%', padding: 0}}
+                            styleDropdown={{width: '70%', padding: 0}}
+                            styleBaseContainer={{padding:5}}
                         />
                     </View>}
                     {(notificationType === 3) && <View style={[styles.fieldContainer, {backgroundColor: theme.uiBackground}]}>
@@ -292,10 +300,12 @@ const Create = () => {
                         <ThemedDropdownComponent
                             data={weekdayData}
                             value={weekday}
+                            mode={'modal'}
                             onChange={(newValue, item) => {
                                 setWeekday(newValue);
                             }}
-                            styleDropdown={{width: '50%', padding: 0}}
+                            styleDropdown={{width: '70%', padding: 0}}
+                            styleBaseContainer={{padding:5}}
                         />
                     </View>}
                     {(notificationType >= 2) && <View style={[styles.fieldContainer, {backgroundColor: theme.uiBackground}]}>
@@ -305,10 +315,12 @@ const Create = () => {
                         <ThemedDropdownComponent
                             data={hourData}
                             value={hour}
+                            mode={'modal'}
                             onChange={(newValue, item) => {
                                 setHour(newValue);
                             }}
-                            styleDropdown={{width: '50%', padding: 0}}
+                            styleDropdown={{width: '70%', padding: 0}}
+                            styleBaseContainer={{padding:5}}
                         />
                     </View>}
 
@@ -320,11 +332,12 @@ const Create = () => {
                         <ThemedDropdownComponent
                             data={minuteData}
                             value={minute}
-
+                            mode={'modal'}
                             onChange={(newValue, item) => {
                                 setMinute(newValue);
                             }}
-                            styleDropdown={{width: '50%', padding: 0}}
+                            styleDropdown={{width: '70%', padding: 0}}
+                            styleBaseContainer={{padding:5}}
                         />
                     </View>}
 
