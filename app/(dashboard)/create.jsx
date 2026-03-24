@@ -1,85 +1,415 @@
-import { StyleSheet, Button } from 'react-native'
-import { useState } from 'react'
-
+// dev related imports
+import React, { useState } from 'react'
+import { StyleSheet, Text, View, ScrollView, TouchableWithoutFeedback, Keyboard } from 'react-native'
+import { Platform } from 'react-native'
+// notification related imports
+import * as Notifications from 'expo-notifications'
+import { initNotifications } from "../../lib/notifications.js"
+// context-hook imports
+import { useTheme } from '../../contexts/ThemeContext'
+// custom component imports
 import Spacer from "../../components/Spacer"
 import ThemedText from "../../components/ThemedText"
 import ThemedView from "../../components/ThemedView"
+import ThemedTextInput from "../../components/ThemedTextInput"
+import ThemedButton from "../../components/ThemedButton"
+import ThemedDropdownComponent from "../../components/ThemedDropdown"
+import { Colors } from '../../constants/colors'
 
-import { Platform } from 'react-native';
-import * as Notifications from 'expo-notifications'
+// import data for dropdown menus from constants
+import { notificationTypeData, minuteData, hourData, weekdayData, monthData } from '../../constants/dropdownFields'
 
-import { initNotifications } from "../../lib/notifications.js"
 
-// async function to request system permissions for push notifications
+// async function to check & request system permissions for notifications
 async function requestPermissions() {
-  const { status } = await Notifications.requestPermissionsAsync();
-  if (status !== 'granted') {
-    alert('Permission for notifications not granted!');
-    return false;
-  }
-  return true;
+    // check if permissions have been given
+    const { status } = await Notifications.requestPermissionsAsync()
+    // if !permissions, alert
+    if (status !== 'granted') {
+        alert('Permission for notifications not granted!')
+        return false
+    }
+    return true
 }
 
+// unlike minutes, hours, weekdays and months, days in a month are not constant.. how sad
+function getDaysInMonth(month, year = new Date().getFullYear()) {
+    // if there is no data in month const, return empty item list
+    if (!month) {
+        return []
+    }
+    // get last day of month at specific year and month (usualy current year & selected month)
+    const daysInMonth = new Date(year, month, 0).getDate()
+    // construct and array object with values 'label' and 'value', as per <Dropdown> component requirements and return it
+    return Array.from({ length: daysInMonth }, (_, i) => ({
+        label: String(i + 1),
+        value: i + 1,
+    }))
+}
 
 // create tab page tasked with handling creating and editing information and reminders.
 const Create = () => {
-  const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
+    // notification scheduler related consts
+    const [title, setTitle] = useState('')
+    const [body, setBody] = useState('')
+    const [minute, setMinute] = useState(null)
+    const [hour, setHour] = useState(null)
+    const [weekday, setWeekday] = useState(null)
+    const [day, setDay] = useState(null)
+    const [month, setMonth] = useState(null)
+    // notification dropdown related consts
+    const [notificationType, setNotificationType] = useState(null)
+    const [error, setError] = useState(null)
+    const dayData = getDaysInMonth(month) // <<-- this bad boy is different, *dynamic*! purr, rawr. bow-wow
 
-  // test function to see if everything is mint
-  async function scheduleTestNotification() {
-    // Ensure a channel exists for Android
-      await Notifications.setNotificationChannelAsync('default', {
-        name: 'Default',
-        importance: Notifications.AndroidImportance.MAX,
-        sound: 'default',
-      });
+    // theme related const
+    const { theme } = useTheme()
 
-    Notifications.scheduleNotificationAsync({
-      content: {
-        title: "Time's up!",
-        body: 'Change sides!',
-      },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-        seconds: 20,
-      },
-    });
-  }
+    // function to validate dropdown fields
+    function validateNotificationForm() {
+        let errMessage = ""
+        if(!title.trim()) {errMessage += "Please enter a notification title\n"}
+        if(hour === null) {errMessage += "Choose value from 'Hour' field\n"}
+        if(minute === null) {errMessage += "Choose value from 'Minute' field\n"}
+        if(notificationType === 3 && weekday === null) {errMessage += "Choose value from 'Week day' field\n"}
+        if(notificationType === 4 && day === null) {errMessage += "Choose value from 'Day' field\n"}
+        if (notificationType === 5) {
+            if (month === null) {
+                errMessage += "Choose value from 'Month' field\n"
+            }
+            if (day === null) {
+                errMessage += "Choose value from 'Day' field\n"
+            }
+        }
+        // return accumulated errors
+        if (errMessage === "") {return null}
+        return errMessage
+    }
 
-  async function handlePress() {
-    const granted = await requestPermissions();
-    if (!granted) return;
-    scheduleTestNotification();
-  }
-  return (
-    <ThemedView safe style={styles.container}>
 
-      <ThemedText title={true} style={styles.heading}>
-        Add a Reminder
-      </ThemedText>
+    // notification scheduler function
+    async function scheduleNotification() {
+        // set error to null
+        setError(null)
+        // validate for errors and return
+        const error = validateNotificationForm()
+        // 'throw' error if error exists
+        if (error) {
+            setError(error)
+            return
+        }
+        // check notification type and schedule based on it
+        if (notificationType === 2) {
+            await Notifications.scheduleNotificationAsync({
+                content: {
+                    title,
+                    body,
+                },
+                trigger: {
+                    type: Notifications.SchedulableTriggerInputTypes.DAILY,
+                    hour,
+                    minute,
+                },
+            })
+            console.log('Daily notification set')
+        } else if (notificationType === 3) {
+            await Notifications.scheduleNotificationAsync({
+                content: {
+                    title,
+                    body,
+                },
+                trigger: {
+                    type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
+                    hour,
+                    minute,
+                    weekday,
+                },
+            })
+            console.log('Weekly notification set')
+        } else if (notificationType === 4) {
+            await Notifications.scheduleNotificationAsync({
+                content: {
+                    title,
+                    body,
+                },
+                trigger: {
+                    type: Notifications.SchedulableTriggerInputTypes.MONTHLY,
+                    hour,
+                    minute,
+                    day,
+                },
+            })
+            console.log('Monthly notification set')
+        } else if (notificationType === 5) {
+            // get current date
+            const now = new Date()
+            // get date based on dropdown fields
+            let date = new Date(new Date().getFullYear(), month-1, day, hour, minute, 0 )
+            // check if date has passed and schedule for following year if true
+            if (date <= now) {
+                date = new Date(now.getFullYear()+1, month-1, day, hour, minute, 0 )
+            }
 
-      <Button
-        title="Schedule 5 min notification"
-        onPress={handlePress}
-      />
-      <Spacer />
+            await Notifications.scheduleNotificationAsync({
+                content: {
+                    title,
+                    body,
+                },
+                trigger: {
+                    type: Notifications.SchedulableTriggerInputTypes.DATE,
+                    date
+                },
+            })
+            console.log('One-time notification set')
+        }
+        // reset notification related consts
+        setNotificationType(null);
+        setHour(null);
+        setMinute(null);
+        setWeekday(null);
+        setDay(null);
+        setMonth(null);
+        setTitle('');
+        setBody('');
+    }
+    // function to handle schedule submission
+    async function handlePress() {
+        // get system permissions
+        const granted = await requestPermissions()
+        // return if permissions disallow
+        if (!granted) {
+            return
+        }
+        // call function to schedule notification
+        await scheduleNotification()
+    }
+    // note to self: May need to add scrollview
+    return (
+        <TouchableWithoutFeedback  onPress={Keyboard.dismiss}>
+            <ScrollView style={{height: '100%', backgroundColor: theme.background}}>
+                <ThemedView safe style={styles.container}>
 
-    </ThemedView>
-  )
+                    <Spacer height={20}/>
+
+                    {/*Header*/}
+                    <ThemedText title={true} style={styles.header}>
+                        Schedule Notification
+                    </ThemedText>
+
+                    <Spacer height={20}/>
+
+
+                    {/*Notification title label and input field*/}
+                    <ThemedText>
+                        Notification Title
+                    </ThemedText>
+
+                    <ThemedTextInput
+                        placeholder='Notification Name'
+                        style={styles.txtInput}
+                        autoCorrect={false}
+                        autoComplete={'off'}
+                        onChangeText={setTitle}
+                        value={title}
+                    />
+
+                    {/*Notification Body label and input field*/}
+                    <ThemedText>
+                        Notification Body
+                    </ThemedText>
+
+                    <ThemedTextInput
+                        placeholder='Notification Body'
+                        style={styles.txtInput}
+                        autoCorrect={false}
+                        autoComplete={'off'}
+                        onChangeText={setBody}
+                        value={body}
+                    />
+
+                    {/*Dropdown subsection where the magic happens*/}
+                    <ThemedText>
+                        Notification Type
+                    </ThemedText>
+                    {/*Custom Themed component with custom {props} passed to manipulate a generalized version of a component*/}
+                    <ThemedDropdownComponent
+                        // data prop accepts data array to disply as 'items'
+                        data={notificationTypeData}
+                        // value prop matching local value with general components display item
+                        // in our case 'notificationType' is int, wherein 2 ==> 'Daily' field
+                        value={notificationType}
+                        // onChange prop to change local and general component values
+                        onChange={(newValue, item) => {
+                            // setting the values
+                            setNotificationType(newValue);
+                            // resetting fields. Why? CALENDAR trigger incident
+                            // no funky business with carryover data
+                            setHour(null);
+                            setMinute(null);
+                            setWeekday(null);
+                            setDay(null);
+                            setMonth(null);
+                            setError(null);
+                        }}
+                    />
+                    {/*if null, display text suggesting that user should pick notification type*/}
+                    {(notificationType === null) && <ThemedText style={{margin: 20}}>Select A Notification Type</ThemedText>}
+
+                    {/*sub-dropdown fields, each only rendering when appropriat for the notification type*/}
+                    {(notificationType === 5) && <View style={[styles.fieldContainer, {backgroundColor: theme.uiBackground}]}>
+                        <ThemedText style={styles.label}>
+                            Month:
+                        </ThemedText>
+                        <ThemedDropdownComponent
+                            data={monthData}
+                            value={month}
+                            onChange={(newValue, item) => {
+                                setMonth(newValue);
+                                // day array is calculated dynamically for accuracy,
+                                // thus needs resetting so no mismatch occurs
+                                setDay(null);
+                            }}
+                            styleDropdown={{width: '50%', padding: 0}}
+                        />
+                    </View>}
+                    {(notificationType === 4 || notificationType === 5) && <View style={[styles.fieldContainer, {backgroundColor: theme.uiBackground}]}>
+                        <ThemedText style={styles.label}>
+                            Day:
+                        </ThemedText>
+                        <ThemedDropdownComponent
+                            data={dayData}
+                            value={day}
+                            onChange={(newValue, item) => {
+                                setDay(newValue);
+                            }}
+                            styleDropdown={{width: '50%', padding: 0}}
+                        />
+                    </View>}
+                    {(notificationType === 3) && <View style={[styles.fieldContainer, {backgroundColor: theme.uiBackground}]}>
+                        <ThemedText style={styles.label}>
+                            Week day:
+                        </ThemedText>
+                        <ThemedDropdownComponent
+                            data={weekdayData}
+                            value={weekday}
+                            onChange={(newValue, item) => {
+                                setWeekday(newValue);
+                            }}
+                            styleDropdown={{width: '50%', padding: 0}}
+                        />
+                    </View>}
+                    {(notificationType >= 2) && <View style={[styles.fieldContainer, {backgroundColor: theme.uiBackground}]}>
+                        <ThemedText style={styles.label}>
+                            Hour:
+                        </ThemedText>
+                        <ThemedDropdownComponent
+                            data={hourData}
+                            value={hour}
+                            onChange={(newValue, item) => {
+                                setHour(newValue);
+                            }}
+                            styleDropdown={{width: '50%', padding: 0}}
+                        />
+                    </View>}
+
+
+                    {(notificationType !== null) && <View style={[styles.fieldContainer, {backgroundColor: theme.uiBackground}]}>
+                        <ThemedText style={styles.label}>
+                            Minute:
+                        </ThemedText>
+                        <ThemedDropdownComponent
+                            data={minuteData}
+                            value={minute}
+
+                            onChange={(newValue, item) => {
+                                setMinute(newValue);
+                            }}
+                            styleDropdown={{width: '50%', padding: 0}}
+                        />
+                    </View>}
+
+                    {/*error display in case of error*/}
+                    {error && <Text style={styles.error} onPress={() => {setError(null)}}>{error}</Text>}
+
+                    {/*submission button only appears if notificationType is valid value*/}
+                    {(notificationType !== null) && <ThemedButton primary={true} onPress={handlePress}>
+                        <Text style={{ color: 'white' }}>
+                            Schedule Notification
+                        </Text>
+                    </ThemedButton>}
+
+                </ThemedView>
+            </ScrollView>
+        </TouchableWithoutFeedback>
+    )
 }
 
 export default Create
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  heading: {
-    fontWeight: "bold",
-    fontSize: 18,
-    textAlign: "center",
-  },
+// basic page CSS
+    container: {
+        height: '100%',
+        flex: 1,
+        alignItems: "center"
+    },
+    header: {
+        fontWeight: "bold",
+        fontSize: 18,
+        textAlign: "center"
+    },
+// input fields
+    txtInput: {
+        width: '90%',
+        margin:10
+    },
+// Dropdown related CSS
+    dropdown: {
+        height: 50,
+        padding: 20,
+        borderRadius: 6,
+        width: '90%',
+        margin: 10
+    },
+    placeholderStyle: {
+        fontSize: 16
+    },
+    selectedTextStyle: {
+        fontSize: 16
+    },
+    inputSearchStyle: {
+        height: 40,
+        fontSize: 16,
+        borderWidth: 0,
+        borderBottomWidth: 1
+    },
+    itemContainerStyle: {
+        borderRadius: 6,
+        borderBottomWidth: 2,
+        width: '95%',
+        alignSelf: 'center'
+    },
+// sub-dropdown related CSS
+    fieldContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 10,
+        marginVertical: 8,
+        width: '90%',
+        borderRadius: 6,
+        height: 50
+    },
+// error message CSS
+    error: {
+        textAlign: 'center',
+        color: Colors.warning,
+        padding: 10,
+        backgroundColor: "#e2b3b3ff",
+        borderColor: Colors.warning,
+        borderWidth: 1,
+        borderRadius: 6,
+        margin: 20
+        }
+
 })

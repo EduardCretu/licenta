@@ -1,0 +1,71 @@
+<Dropdown
+    style={[
+        styles.dropdown,
+        {
+            backgroundColor: theme.uiBackground,
+            color: theme.text
+        }
+    ]}
+    placeholderStyle={[
+        styles.placeholderStyle,
+        {
+            backgroundColor: theme.uiBackground,
+            color: theme.text
+        }
+    ]}
+    selectedTextStyle={[
+        styles.selectedTextStyle,
+        {
+            backgroundColor: theme.uiBackground,
+            color: theme.text
+        }
+    ]}
+    inputSearchStyle={[
+        styles.inputSearchStyle,
+        {
+            backgroundColor: theme.uiBackground,
+            color: theme.text
+        }
+    ]}
+    itemContainerStyle={[
+        styles.itemContainerStyle,
+        {
+            backgroundColor: theme.background,
+            borderColor: theme.navBackground
+        }
+    ]}
+    containerStyle={[
+        styles.containerStyle,
+        {
+            backgroundColor: theme.navBackground,
+            borderColor: theme.navBackground
+        }
+    ]}
+    itemTextStyle={{ color: theme.text }}
+    activeColor={theme.uiBackground}
+    data={notificationTypeData}
+    search={false}
+    maxHeight={250}
+    labelField="label"
+    valueField="value"
+    placeholder="..."
+    searchPlaceholder="Search..."
+    value={notificationType}
+    onChange={item => {
+        setNotificationType(item.value)
+    }}
+/>
+
+
+{(notificationType == 6) && <View style={[styles.fieldContainer, {backgroundColor: theme.uiBackground}]}>
+                    <ThemedText style={styles.label}>
+                        Repeat
+                    </ThemedText>
+                    <Switch
+
+                        value={repeat}
+                        onValueChange={setRepeat}
+                        thumbColor={repeat ? '#fff' : '#fff'}
+                        trackColor={{ false: '#767577', true: Colors.primary }}
+                    />
+                </View>}
