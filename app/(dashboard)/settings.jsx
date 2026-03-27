@@ -1,4 +1,4 @@
-import { StyleSheet, View, Switch, Text, TextInput, TouchableWithoutFeedback, Keyboard } from 'react-native'
+import { StyleSheet, View, Switch, Text, TextInput, TouchableWithoutFeedback, Keyboard, Linking } from 'react-native'
 
 import { useTheme } from '../../contexts/ThemeContext'
 import { useUser } from '../../hooks/useUser'
@@ -26,7 +26,7 @@ const Settings = () => {
         </ThemedText>
         <Spacer />
     
-        <ThemedText style={styles.heading}>App Theme</ThemedText>
+        <ThemedText style={styles.heading}>App Options</ThemedText>
 
         <View style={[styles.container, {backgroundColor: theme.uiBackground}]}>
 
@@ -40,6 +40,16 @@ const Settings = () => {
             thumbColor={isDark ? '#fff' : '#fff'}
             trackColor={{ false: '#767577', true: Colors.primary }}
           />
+        </View>
+        <View style={[styles.container, {backgroundColor: theme.uiBackground, paddingRight:5}]}>
+          <ThemedText style={styles.label}>
+            Enable 'Alarms & Reminders'
+          </ThemedText>
+          <ThemedButton style={{backgroundColor: Colors.primary, padding: 10}} onPress={() => Linking.openSettings()}>
+            <Text style={{color: 'white'}}>
+              System Settings
+            </Text>
+          </ThemedButton>
         </View>
 
         <ThemedText style={styles.heading}>Account Options</ThemedText>
@@ -65,6 +75,9 @@ const Settings = () => {
 
           />
         </View>
+
+
+
         <Spacer/>
         <View style={[styles.container, {backgroundColor: theme.uiBackground, paddingRight:5}]}>
           <ThemedText style={styles.label}>

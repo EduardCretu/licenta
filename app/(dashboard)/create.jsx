@@ -1,6 +1,6 @@
 // dev related imports
-import React, { useState } from 'react'
-import { StyleSheet, Text, View, ScrollView, TouchableWithoutFeedback, Keyboard } from 'react-native'
+import React, { useState, useEffect } from 'react'
+import { StyleSheet, Text, View, ScrollView, TouchableWithoutFeedback, Keyboard, Modal, Alert, Linking } from 'react-native'
 // notification related imports
 import * as Notifications from 'expo-notifications'
 import { initNotifications } from "../../lib/notifications.js"
@@ -18,6 +18,7 @@ import { Colors } from '../../constants/colors'
 // import data for dropdown menus from constants
 import { notificationTypeData, minuteData, hourData, weekdayData, monthData, monthlyDayData } from '../../constants/dropdownFields'
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // async function to check & request system permissions for notifications
 async function requestPermissions() {
@@ -37,7 +38,7 @@ function getDaysInMonth(month, year = new Date().getFullYear()) {
     if (!month) {
         return []
     }
-    // get last day of month at specific year and month (usualy current year & selected month)
+    // get last day of month at specific year and month (usually current year & selected month)
     const daysInMonth = new Date(year, month, 0).getDate()
     // construct and array object with values 'label' and 'value', as per <Dropdown> component requirements and return it
     return Array.from({ length: daysInMonth }, (_, i) => ({
@@ -63,6 +64,39 @@ const Create = () => {
 
     // theme related const
     const { theme } = useTheme()
+
+    useEffect(() => {
+        // create a const function that checks storage for a token regarding showing user 'A&N' alert
+        const checkReminderAlert = async () => {
+            try {
+                // get token value
+                const hasSeen = await AsyncStorage.getItem('hasSeenReminderAlert')
+                // if token value is 'null' show alert
+                if (!hasSeen) {
+                    Alert.alert(
+                        "IMPORTANT",
+                        "For accurate notifications, please enable 'Alarms & Reminders' in your device settings.",
+                        [
+                            { text: "Cancel", style: "cancel" },
+                            {
+                                text: "Open Settings",
+                                // send user to system settings
+                                onPress: () => Linking.openSettings()
+                            }
+                        ]
+                    )
+                    // Once alert has been dismissed, sets token as true for a 1 time use case
+                    await AsyncStorage.setItem('hasSeenReminderAlert', 'true')
+                }
+            } catch (err) {
+                console.error("AsyncStorage error:", err)
+            }
+        }
+        // call function once and never again
+        checkReminderAlert()
+    }, [])
+
+
 
     // function to validate dropdown fields
     function validateNotificationForm() {
@@ -187,10 +221,12 @@ const Create = () => {
         // call function to schedule notification
         await scheduleNotification()
     }
+
+
     // note to self: May need to add scrollview
     return (
         <TouchableWithoutFeedback  onPress={Keyboard.dismiss}>
-            <ScrollView style={{height: '100%', backgroundColor: theme.background}}>
+            <ScrollView endFillColor={theme.background}>
                 <ThemedView safe style={styles.container}>
 
                     <Spacer height={20}/>
@@ -323,8 +359,6 @@ const Create = () => {
                             styleBaseContainer={{padding:5}}
                         />
                     </View>}
-
-
                     {(notificationType !== null) && <View style={[styles.fieldContainer, {backgroundColor: theme.uiBackground}]}>
                         <ThemedText style={styles.label}>
                             Minute:
@@ -342,15 +376,21 @@ const Create = () => {
                     </View>}
 
                     {/*error display in case of error*/}
-                    {error && <Text style={styles.error} onPress={() => {setError(null)}}>{error}</Text>}
+                    {error && <Modal
+                        animationType={"slide"}
+                        transparent={true}
+                    >
+                        <Text style={styles.error} onPress={() => {setError(null)}}>
+                            {error}
+                        </Text>
+                    </Modal>}
 
                     {/*submission button only appears if notificationType is valid value*/}
-                    {(notificationType !== null) && <ThemedButton primary={true} onPress={handlePress}>
+                    {(notificationType !== null) && <ThemedButton onPress={handlePress}>
                         <Text style={{ color: 'white' }}>
                             Schedule Notification
                         </Text>
                     </ThemedButton>}
-
                 </ThemedView>
             </ScrollView>
         </TouchableWithoutFeedback>
@@ -362,7 +402,6 @@ export default Create
 const styles = StyleSheet.create({
 // basic page CSS
     container: {
-        height: '100%',
         flex: 1,
         alignItems: "center"
     },
@@ -414,6 +453,9 @@ const styles = StyleSheet.create({
         height: 50
     },
 // error message CSS
+
+
+
     error: {
         textAlign: 'center',
         color: Colors.warning,
@@ -422,6 +464,7 @@ const styles = StyleSheet.create({
         borderColor: Colors.warning,
         borderWidth: 1,
         borderRadius: 6,
+        boxShadow: '2px 2px 5px #030303',
         margin: 20
         }
 

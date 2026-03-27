@@ -5,11 +5,11 @@
     "slug": "HealthApp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/icon_variants/icon.png",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/icon.png",
+      "image": "./assets/icon_variants/icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#e0dfe8",
       "dark" : {
@@ -22,15 +22,15 @@
     },
     "android": {
       "package": "com.nmlcode.healthdoc",
-      "permissions" : ["SCHEDULE_EXACT_ALARM"],
+      "permissions" : ["USE_EXACT_ALARM","RECEIVE_BOOT_COMPLETED"],
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
-        "backgroundColor": "#e0dfe8"
+        "foregroundImage": "./assets/icon_variants/icon.png",
+        "backgroundColor": "#313131"
       },
       "edgeToEdgeEnabled": true
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/icon_variants/icon.png"
     },
     "plugins": [
       "expo-router",
