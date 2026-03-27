@@ -69,3 +69,20 @@
                         trackColor={{ false: '#767577', true: Colors.primary }}
                     />
                 </View>}
+
+/* async function loadScheduledNotifications() {
+        const notifications = await Notifications.getAllScheduledNotificationsAsync()
+
+        // Make it readable
+        const formatted = notifications.map((n, index) => {
+            return `#${index + 1}
+    Type: ${n.trigger?.type}
+    Hour: ${n.trigger?.hour}
+    Minute: ${n.trigger?.minute}
+    Weekday: ${n.trigger?.weekday}
+    Day: ${n.trigger?.day}
+    ------------------`
+        }).join('\n')
+
+        setDebugInfo(formatted || 'No scheduled notifications')
+    }
