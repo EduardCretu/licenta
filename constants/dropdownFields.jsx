@@ -107,6 +107,15 @@ const weekdayData = [
     { label: 'Friday', value: 6 },
     { label: 'Saturday', value: 7 },
 ]
+const weekdayDataString = [
+              'Sunday',
+              'Monday',
+              'Tuesday',
+              'Wednesday',
+              'Thursday',
+              'Friday',
+              'Saturday'
+            ];
 const monthData = [
     //{ label: '...', value: null},
     { label: 'January', value: 1 },
@@ -156,4 +165,4 @@ const monthlyDayData = [
     { label: '30', value: 30 },
     { label: '31', value: 31 },
 ]
-export { notificationTypeData, minuteData, hourData, weekdayData, monthData, monthlyDayData }
+export { notificationTypeData, minuteData, hourData, weekdayData, weekdayDataString, monthData, monthlyDayData }
