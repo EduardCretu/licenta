@@ -90,6 +90,7 @@ const Reminders = () => {
 
     return (
         <ScrollView
+            style={{backgroundColor: theme.background}}
             endFillColor={theme.background}
             refreshControl={
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
