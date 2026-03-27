@@ -1,6 +1,6 @@
 // dev related imports
 import React, { useState, useEffect } from 'react'
-import { StyleSheet, Text, View, ScrollView, TouchableWithoutFeedback, Keyboard, Modal, Alert, Linking } from 'react-native'
+import { StyleSheet, Text, View, ScrollView, TouchableWithoutFeedback, Keyboard, Modal, Pressable } from 'react-native'
 // notification related imports
 import * as Notifications from 'expo-notifications'
 import { initNotifications } from "../../lib/notifications.js"
@@ -226,7 +226,7 @@ const Create = () => {
     // note to self: May need to add scrollview
     return (
         <TouchableWithoutFeedback  onPress={Keyboard.dismiss}>
-            <ScrollView endFillColor={theme.background}>
+            <ScrollView endFillColor={theme.background} style={{backgroundColor: theme.background}}>
                 <ThemedView safe style={styles.container}>
 
                     <Spacer/>
@@ -380,9 +380,11 @@ const Create = () => {
                         animationType={"slide"}
                         transparent={true}
                     >
-                        <Text style={styles.error} onPress={() => {setError(null)}}>
-                            {error}
-                        </Text>
+                        <Pressable style={{height: '100%'}} onPress={() => {setError(null)}}>
+                                <Text style={styles.error} >
+                                    {error}
+                                </Text>
+                        </Pressable>
                     </Modal>}
 
                     {/*submission button only appears if notificationType is valid value*/}
