@@ -9,8 +9,12 @@ import ThemedButton from '../../components/ThemedButton';
 
 import * as Notifications from 'expo-notifications';
 
+// color imports
 import { useTheme } from '../../contexts/ThemeContext';
 import { Colors } from '../../constants/colors';
+
+import { weekdayDataString } from '../../constants/dropdownFields';
+
 
 const Reminders = () => {
     const [notifications, setNotifications] = useState([]);
@@ -25,7 +29,7 @@ const Reminders = () => {
         try {
             const notifData = await Notifications.getAllScheduledNotificationsAsync();
             setNotifications(notifData);
-            //console.log(notifData)
+            console.log(notifData)
         } catch (err) {
             console.log(err);
             setNotifications([]);
@@ -48,29 +52,19 @@ const Reminders = () => {
         loadScheduledNotifications();
     }, []);
 
-    // const to open specific notification window
-    const openNotifWin = (notif) => {
-        setSelectedNotif(notif);
-        setDetailWin(true);
-    };
-    // const to close notif window
-    const closeNotifWin = () => {
-        setSelectedNotif(null);
-        setDetailWin(false);
-    };
-
-    // arrow function that deletes specified notification by ID
+    // arrow function that deletes specified notification by ID & closes DetailNotif Window
     const handleDeleteOne = async () => {
         try {
             await Notifications.cancelScheduledNotificationAsync(selectedNotif.identifier);
-            closeNotifWin();
+            setSelectedNotif(null);
+        setDetailWin(false);
             await loadScheduledNotifications();
         } catch (err) {
             console.log(err);
         }
     };
 
-    // arrow function that deletes all notifications
+    // arrow function that deletes all notifications and closes the delAll window
     const handleDeleteAll = async () => {
         try {
             await Notifications.cancelAllScheduledNotificationsAsync();
@@ -81,14 +75,14 @@ const Reminders = () => {
         }
     };
 
+    // render arrow function which renders trigger object data
     const renderTriggerDetails = (trigger) => {
         return (
             <>
                 <ThemedText>Type: {trigger.type}</ThemedText>
-                {trigger.type !== 'date' && <ThemedText>Hour: {trigger.hour}</ThemedText>}
-                {trigger.type !== 'date' && <ThemedText>Minute: {trigger.minute}</ThemedText>}
-                {trigger.type === 'weekday' && <ThemedText>Weekday: {trigger.weekday}</ThemedText>}
-                {trigger.type === 'monthly' || trigger.type === 'date '&& <ThemedText>Day: {trigger.day}</ThemedText>}
+                {trigger.type === 'weekly' && <ThemedText>Weekday: {weekdayDataString[trigger.weekday]}</ThemedText>}
+                {trigger.type === 'monthly' && <ThemedText>Day: {trigger.day}</ThemedText>}
+                {trigger.type !== 'date' && <ThemedText>Time: {trigger.hour}:{String(trigger.minute).padStart(2, '0')}</ThemedText>}
                 {trigger.type === 'date' && <ThemedText>Date: {new Date(trigger.value).toLocaleString()}</ThemedText>}
             </>
         );
@@ -114,10 +108,13 @@ const Reminders = () => {
 
                 {notifications.length !== 0 &&
                     <View style={styles.listWrap}>
+                        {/*Mapping out the information of `notifications` into `notif` objects, each a pressable card*/}
                         {notifications.map((notif, index) => (
                             <Pressable
                                 key={notif.identifier}
-                                onPress={() => openNotifWin(notif)}
+                                onPress={() => {
+                                    setSelectedNotif(notif);
+                                    setDetailWin(true);}}
                                 style={[
                                     styles.card,
                                     {backgroundColor: theme.uiBackground, borderColor: theme.iconColor}]}
@@ -143,6 +140,7 @@ const Reminders = () => {
                     </View>
                 }
 
+                {/*Only show delete all button if there are notification objects to delete */}
                 {notifications.length > 0 && (
                     <ThemedButton onPress={() => setDelAllWin(true)}>
                         <Text style={{ color: 'white', fontSize: 16, fontWeight: 500 }}>
@@ -151,11 +149,15 @@ const Reminders = () => {
                     </ThemedButton>
                 )}
 
+                {/* first modal which displays a hover component with the notification data */}
                 <Modal
                     animationType="slide"
                     transparent={true}
                     visible={detailWin}
-                    onRequestClose={closeNotifWin}
+                    onRequestClose={() => {
+                        setSelectedNotif(null)
+                        setDetailWin(false)
+                    }}
                 >
                     <View style={styles.centeredView}>
                         <View
@@ -167,13 +169,15 @@ const Reminders = () => {
                             <ThemedText style={[styles.modalText, { fontSize: 25 }]}>
                                 Notification Details
                             </ThemedText>
-
+                            
+                            {/* only render when a notification is selected */}
                             {selectedNotif && (
                                 <View style={styles.detailBlock}>
                                     {renderTriggerDetails(selectedNotif.trigger)}
                                 </View>
                             )}
 
+                            {/* button section with delete and cancel options */}
                             <View style={styles.btnView}>
                                 <ThemedButton
                                     style={{
@@ -201,7 +205,10 @@ const Reminders = () => {
                                         width: '45%',
                                         height: 55
                                     }}
-                                    onPress={closeNotifWin}
+                                    onPress={() => {
+                                        setSelectedNotif(null)
+                                        setDetailWin(false)
+                                    }}
                                 >
                                     <Text
                                         style={{
@@ -219,6 +226,8 @@ const Reminders = () => {
                     </View>
                 </Modal>
 
+
+                {/* second modal, this one concerning itself if the deletion of all notifications */}
                 <Modal
                     animationType="slide"
                     transparent={true}
@@ -288,6 +297,7 @@ const Reminders = () => {
 export default Reminders;
 
 const styles = StyleSheet.create({
+// general CSS
     container: {
         flex: 1,
         alignItems: 'center',
@@ -298,6 +308,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginBottom: 16
     },
+// notif cards related CSS
     listWrap: {
         width: '90%',
         marginBottom: 20
@@ -313,6 +324,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 8
     },
+// modal related CSS
     centeredView: {
         flex: 1,
         justifyContent: 'center',
