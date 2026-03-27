@@ -229,7 +229,7 @@ const Create = () => {
             <ScrollView endFillColor={theme.background}>
                 <ThemedView safe style={styles.container}>
 
-                    <Spacer height={20}/>
+                    <Spacer/>
 
                     {/*Header*/}
                     <ThemedText title={true} style={styles.header}>
