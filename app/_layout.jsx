@@ -2,6 +2,7 @@ import { Slot } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { UserProvider } from "../contexts/userContext";
 import { ThemeProvider } from "../contexts/ThemeContext";
+import { MedInfoProvider } from "../contexts/medInfoContext";
 
 import { initNotifications }  from "../lib/notifications"
 import { useEffect } from "react";
@@ -15,12 +16,15 @@ export default function RootLayout() {
     initNotifications();
   }, [])
   return (
-    <UserProvider> 
-      <ThemeProvider>
-        <StatusBar hidden />
-        <Slot /> 
-      </ThemeProvider>
-    </UserProvider>
+    <MedInfoProvider>
+        <UserProvider>
+          <ThemeProvider>
+            <StatusBar hidden />
+            <Slot />
+          </ThemeProvider>
+        </UserProvider>
+    </MedInfoProvider>
+
   );
 }
 

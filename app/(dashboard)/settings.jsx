@@ -1,7 +1,8 @@
-import { StyleSheet, View, Switch, Text, TextInput, TouchableWithoutFeedback, Keyboard, Linking } from 'react-native'
+import { StyleSheet, View, Switch, Text, TextInput, TouchableWithoutFeedback, Keyboard } from 'react-native'
 
 import { useTheme } from '../../contexts/ThemeContext'
 import { useUser } from '../../hooks/useUser'
+import { useMedInfo } from '../../contexts/medInfoContext'
 
 import Spacer from "../../components/Spacer"
 import ThemedText from "../../components/ThemedText"
@@ -14,6 +15,12 @@ import { Colors } from '../../constants/colors'
 const Settings = () => {
   const { isDark, toggleTheme, theme } = useTheme()
   const { user, logout, deleteAccount } = useUser()
+  const { deleteMedInfo } = useMedInfo()
+
+  async function handleDeleteAcc() {
+    await deleteMedInfo(user.$id);
+    await deleteAccount();
+  }
 
 
   return (
@@ -40,16 +47,6 @@ const Settings = () => {
             thumbColor={isDark ? '#fff' : '#fff'}
             trackColor={{ false: '#767577', true: Colors.primary }}
           />
-        </View>
-        <View style={[styles.container, {backgroundColor: theme.uiBackground, paddingRight:5}]}>
-          <ThemedText style={styles.label}>
-            Enable 'Alarms & Reminders'
-          </ThemedText>
-          <ThemedButton style={{backgroundColor: Colors.primary, padding: 10}} onPress={() => Linking.openSettings()}>
-            <Text style={{color: 'white'}}>
-              System Settings
-            </Text>
-          </ThemedButton>
         </View>
 
         <ThemedText style={styles.heading}>Account Options</ThemedText>
@@ -83,7 +80,7 @@ const Settings = () => {
           <ThemedText style={styles.label}>
             Account Termination
           </ThemedText>
-          <ThemedButton style={{backgroundColor: Colors.warning, padding: 10}} onPress={deleteAccount}>
+          <ThemedButton style={{backgroundColor: Colors.warning, padding: 10}} onPress={handleDeleteAcc}>
             <Text style={{color: 'white'}}>
               DELETE ACCOUNT
             </Text>

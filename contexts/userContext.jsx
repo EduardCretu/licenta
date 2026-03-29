@@ -1,17 +1,24 @@
 import { createContext, useEffect, useState } from "react"
-import { account } from "../lib/appwrite-dev"
+import { account } from "../lib/appwrite"
 import { ID } from "react-native-appwrite"
+
+import { useMedInfo } from './medInfoContext'
+
+
 
 export const UserContext = createContext()
 
-export function UserProvider({ children }) { 
+export function UserProvider({ children }) {
+
   const [user, setUser] = useState(null)
   const [authChecked, setAuthChecked] = useState(false)
+  const { ensureMedInfo } = useMedInfo()
 
   async function login(email, password) {
     try {
       await account.createEmailPasswordSession({email: email,password: password})
       const response = await account.get()
+      await ensureMedInfo(response.$id)
       setUser(response)
     }
     catch (error) {
@@ -29,7 +36,6 @@ export function UserProvider({ children }) {
     }
   }
 
-  
 
   async function updateRecovery({ userId, secret, password, passwordAgain }) {
   try {
