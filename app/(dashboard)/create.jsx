@@ -18,8 +18,6 @@ import { Colors } from '../../constants/colors'
 // import data for dropdown menus from constants
 import { notificationTypeData, minuteData, hourData, weekdayData, monthData, monthlyDayData } from '../../constants/dropdownFields'
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
 // async function to check & request system permissions for notifications
 async function requestPermissions() {
     // check if permissions have been given
@@ -62,39 +60,10 @@ const Create = () => {
     const [error, setError] = useState(null)
     const dayData = getDaysInMonth(month) // <<-- this bad boy is different, *dynamic*! purr, rawr. bow-wow
 
+    const [isFocused, setIsFocused] = useState(false)
+
     // theme related const
     const { theme } = useTheme()
-
-    useEffect(() => {
-        // create a const function that checks storage for a token regarding showing user 'A&N' alert
-        const checkReminderAlert = async () => {
-            try {
-                // get token value
-                const hasSeen = await AsyncStorage.getItem('hasSeenReminderAlert')
-                // if token value is 'null' show alert
-                if (!hasSeen) {
-                    Alert.alert(
-                        "IMPORTANT",
-                        "For accurate notifications, please enable 'Alarms & Reminders' in your device settings.",
-                        [
-                            { text: "Cancel", style: "cancel" },
-                            {
-                                text: "Open Settings",
-                                // send user to system settings
-                                onPress: () => Linking.openSettings()
-                            }
-                        ]
-                    )
-                    // Once alert has been dismissed, sets token as true for a 1 time use case
-                    await AsyncStorage.setItem('hasSeenReminderAlert', 'true')
-                }
-            } catch (err) {
-                console.error("AsyncStorage error:", err)
-            }
-        }
-        // call function once and never again
-        checkReminderAlert()
-    }, [])
 
 
 
@@ -273,7 +242,7 @@ const Create = () => {
                     </ThemedText>
                     {/*Custom Themed component with custom {props} passed to manipulate a generalized version of a component*/}
                     <ThemedDropdownComponent
-                        // data prop accepts data array to disply as 'items'
+                        // data prop accepts data array to display as 'items'
                         data={notificationTypeData}
                         // value prop matching local value with general components display item
                         // in our case 'notificationType' is int, wherein 2 ==> 'Daily' field
@@ -282,7 +251,7 @@ const Create = () => {
                         onChange={(newValue, item) => {
                             // setting the values
                             setNotificationType(newValue);
-                            // resetting fields. Why? CALENDAR trigger incident
+                            // resetting fields. Why? .CALENDAR trigger incident
                             // no funky business with carryover data
                             setHour(null);
                             setMinute(null);
@@ -312,6 +281,8 @@ const Create = () => {
                             }}
                             styleDropdown={{width: '70%', padding: 0}}
                             styleBaseContainer={{padding:5}}
+                            stylePlaceholder={{paddingLeft: 20}}
+                            styleSelectedText={{paddingLeft: 20}}
                         />
                     </View>}
                     {(notificationType === 4 || notificationType === 5) && <View style={[styles.fieldContainer, {backgroundColor: theme.uiBackground}]}>
@@ -327,6 +298,8 @@ const Create = () => {
                             }}
                             styleDropdown={{width: '70%', padding: 0}}
                             styleBaseContainer={{padding:5}}
+                            stylePlaceholder={{paddingLeft: 20}}
+                            styleSelectedText={{paddingLeft: 20}}
                         />
                     </View>}
                     {(notificationType === 3) && <View style={[styles.fieldContainer, {backgroundColor: theme.uiBackground}]}>
@@ -342,6 +315,8 @@ const Create = () => {
                             }}
                             styleDropdown={{width: '70%', padding: 0}}
                             styleBaseContainer={{padding:5}}
+                            stylePlaceholder={{paddingLeft: 20}}
+                            styleSelectedText={{paddingLeft: 20}}
                         />
                     </View>}
                     {(notificationType >= 2) && <View style={[styles.fieldContainer, {backgroundColor: theme.uiBackground}]}>
@@ -357,6 +332,8 @@ const Create = () => {
                             }}
                             styleDropdown={{width: '70%', padding: 0}}
                             styleBaseContainer={{padding:5}}
+                            stylePlaceholder={{paddingLeft: 20}}
+                            styleSelectedText={{paddingLeft: 20}}
                         />
                     </View>}
                     {(notificationType !== null) && <View style={[styles.fieldContainer, {backgroundColor: theme.uiBackground}]}>
@@ -372,6 +349,8 @@ const Create = () => {
                             }}
                             styleDropdown={{width: '70%', padding: 0}}
                             styleBaseContainer={{padding:5}}
+                            stylePlaceholder={{paddingLeft: 20}}
+                            styleSelectedText={{paddingLeft: 20}}
                         />
                     </View>}
 
@@ -417,6 +396,9 @@ const styles = StyleSheet.create({
         width: '90%',
         margin:10
     },
+    focusedField: {
+        borderColor: Colors.primary
+    },
 // Dropdown related CSS
     dropdown: {
         height: 50,
@@ -425,39 +407,18 @@ const styles = StyleSheet.create({
         width: '90%',
         margin: 10
     },
-    placeholderStyle: {
-        fontSize: 16
-    },
-    selectedTextStyle: {
-        fontSize: 16
-    },
-    inputSearchStyle: {
-        height: 40,
-        fontSize: 16,
-        borderWidth: 0,
-        borderBottomWidth: 1
-    },
-    itemContainerStyle: {
-        borderRadius: 6,
-        borderBottomWidth: 2,
-        width: '95%',
-        alignSelf: 'center'
-    },
 // sub-dropdown related CSS
     fieldContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 10,
+        paddingLeft: 10,
         marginVertical: 8,
         width: '90%',
         borderRadius: 6,
         height: 50
     },
 // error message CSS
-
-
-
     error: {
         textAlign: 'center',
         color: Colors.warning,

@@ -3,7 +3,7 @@ import { Link } from 'expo-router'
 
 import { useState } from 'react'
 import { useUser } from '../../hooks/useUser'
-
+import { useMedInfo } from '../../contexts/medInfoContext'
 //Themed components
 import ThemedView from '../../components/ThemedView'
 import ThemedText from '../../components/ThemedText'
@@ -21,6 +21,7 @@ const Register = () => {
     const [error, setError] = useState(null)
 
     const { register } = useUser()
+    const { createMedInfo } = useMedInfo()
 
     // function that uses and calls appwrite 'register' function from their auth API
     const submitHandler = async () =>{
@@ -39,7 +40,7 @@ const Register = () => {
         <ThemedView safe style={styles.container}>
             <Spacer/>
             <ThemedText title style={styles.title}>Register for an account</ThemedText>
-            {/* vv-- email input field. May change to usename*/}
+            {/* vv-- email input field. May change to username*/}
             <ThemedTextInput 
             placeholder='Email' 
             style={styles.txtInput}

@@ -6,6 +6,7 @@ import Spacer from '../../components/Spacer';
 import ThemedText from '../../components/ThemedText';
 import ThemedView from '../../components/ThemedView';
 import ThemedButton from '../../components/ThemedButton';
+import ModalButtons from '../../components/ModalButtons'
 
 import * as Notifications from 'expo-notifications';
 
@@ -29,14 +30,14 @@ const Reminders = () => {
         try {
             const notifData = await Notifications.getAllScheduledNotificationsAsync();
             setNotifications(notifData);
-            console.log(notifData)
+            //console.log(notifData)
         } catch (err) {
             console.log(err);
             setNotifications([]);
         }
     };
 
-    // function to refresh screen on pulldown
+    // function to refresh screen on pull down
     const onRefresh = useCallback(async () => {
         setRefreshing(true);
         try {
@@ -95,9 +96,10 @@ const Reminders = () => {
             refreshControl={
                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
+            showsVerticalScrollIndicator={false}
         >
             <ThemedView safe style={styles.container}>
-                <Spacer />
+                <Spacer/>
 
                 <ThemedText title={true} style={styles.heading}>
                     Your Reminders List
@@ -179,50 +181,12 @@ const Reminders = () => {
                             )}
 
                             {/* button section with delete and cancel options */}
-                            <View style={styles.btnView}>
-                                <ThemedButton
-                                    style={{
-                                        backgroundColor: Colors.primary,
-                                        width: '45%',
-                                        height: 55
-                                    }}
-                                    onPress={handleDeleteOne}
-                                >
-                                    <Text
-                                        style={{
-                                            textAlign: 'center',
-                                            color: 'white',
-                                            fontSize: 18,
-                                            fontWeight: 'bold'
-                                        }}
-                                    >
-                                        Delete
-                                    </Text>
-                                </ThemedButton>
-
-                                <ThemedButton
-                                    style={{
-                                        backgroundColor: Colors.warning,
-                                        width: '45%',
-                                        height: 55
-                                    }}
-                                    onPress={() => {
-                                        setSelectedNotif(null)
-                                        setDetailWin(false)
-                                    }}
-                                >
-                                    <Text
-                                        style={{
-                                            textAlign: 'center',
-                                            color: 'white',
-                                            fontSize: 18,
-                                            fontWeight: 'bold'
-                                        }}
-                                    >
-                                        Close
-                                    </Text>
-                                </ThemedButton>
-                            </View>
+                            <ModalButtons
+                                subText={'Delete'}
+                                cancText={'Cancel'}
+                                onSubmit={handleDeleteOne}
+                                onCancel={()=>{setDetailWin(false)}}
+                            />
                         </View>
                     </View>
                 </Modal>
@@ -236,57 +200,17 @@ const Reminders = () => {
                     onRequestClose={() => setDelAllWin(false)}
                 >
                     <View style={styles.centeredView}>
-                        <View
-                            style={[
-                                styles.modalView,
-                                { backgroundColor: theme.navBackground }
-                            ]}
-                        >
+                        <View style={[styles.modalView, { backgroundColor: theme.navBackground }]}>
                             <ThemedText style={[styles.modalText, { fontSize: 25, fontWeight: 500 }]}>
                                 Delete all notifications?
                             </ThemedText>
 
-                            <View style={styles.btnView}>
-                                <ThemedButton
-                                    style={{
-                                        backgroundColor: Colors.primary,
-                                        width: '45%',
-                                        height: 55
-                                    }}
-                                    onPress={handleDeleteAll}
-                                >
-                                    <Text
-                                        style={{
-                                            textAlign: 'center',
-                                            color: 'white',
-                                            fontSize: 18,
-                                            fontWeight: 500
-                                        }}
-                                    >
-                                        Delete
-                                    </Text>
-                                </ThemedButton>
-
-                                <ThemedButton
-                                    style={{
-                                        backgroundColor: Colors.warning,
-                                        width: '45%',
-                                        height: 55
-                                    }}
-                                    onPress={() => setDelAllWin(false)}
-                                >
-                                    <Text
-                                        style={{
-                                            textAlign: 'center',
-                                            color: 'white',
-                                            fontSize: 18,
-                                            fontWeight: 500
-                                        }}
-                                    >
-                                        Cancel
-                                    </Text>
-                                </ThemedButton>
-                            </View>
+                            <ModalButtons
+                                subText={'Delete'}
+                                cancText={'Cancel'}
+                                onSubmit={handleDeleteAll}
+                                onCancel={()=>{setDelAllWin(false)}}
+                            />
                         </View>
                     </View>
                 </Modal>
