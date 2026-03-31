@@ -1,3 +1,4 @@
+// Color pallete chosen for the app
 export const Colors = {
   primary: "#0a7229ff",
   warning: "#cc475a",

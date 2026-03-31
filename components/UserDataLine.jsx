@@ -1,7 +1,8 @@
 import { StyleSheet, View } from 'react-native'
 import ThemedText from './ThemedText'
 
-
+// a simple component to avoid redundancy in /profile.jsx. 
+// Displays two data strings side by side
 const UserDataLine = ({style,title,userData}) => {
   return (
     <View style={[styles.section,{style},style]}>

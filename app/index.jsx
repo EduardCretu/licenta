@@ -8,16 +8,13 @@ import { useEffect } from 'react';
 //                           //
 ///////////////////////////////
 
-
-
-
 export default function Index() {
-  const router = useRouter();
+    const router = useRouter();
 
-  useEffect(() => {
+    useEffect(() => {
     // Reroute to login
     router.replace('/login');
-  }, []);
+    }, []);
 
-  return null;
+    return null;
 }

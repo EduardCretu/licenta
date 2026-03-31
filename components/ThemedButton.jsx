@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet } from 'react-native'
 import { Colors } from '../constants/colors'
 
+// a pressable in the thematic of the application
 const ThemedButton = ({style, ...props}) => {
   return (
     <Pressable

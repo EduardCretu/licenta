@@ -2,7 +2,7 @@ import { ActivityIndicator } from "react-native"
 import ThemedView from "./ThemedView"
 import { useTheme } from "../contexts/ThemeContext"
 
-
+// Themed loader used in (auth) components. Simple spinny wheel
 const ThemedLoader = ({size="large"}) => {
     const { theme } = useTheme()
 

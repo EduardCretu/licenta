@@ -1,9 +1,8 @@
 // dev related imports
-import React, { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { StyleSheet, Text, View, ScrollView, TouchableWithoutFeedback, Keyboard, Modal, Pressable } from 'react-native'
 // notification related imports
 import * as Notifications from 'expo-notifications'
-import { initNotifications } from "../../lib/notifications.js"
 // context-hook imports
 import { useTheme } from '../../contexts/ThemeContext'
 // custom component imports
@@ -14,7 +13,6 @@ import ThemedTextInput from "../../components/ThemedTextInput"
 import ThemedButton from "../../components/ThemedButton"
 import ThemedDropdownComponent from "../../components/ThemedDropdown"
 import { Colors } from '../../constants/colors'
-
 // import data for dropdown menus from constants
 import { notificationTypeData, minuteData, hourData, weekdayData, monthData, monthlyDayData } from '../../constants/dropdownFields'
 

@@ -1,27 +1,36 @@
-import { StyleSheet, Text, View, Modal, ScrollView } from 'react-native'
-
+import { StyleSheet, Text, View, Modal, ScrollView, Image, Pressable } from 'react-native'
+// imports related to avatar
+import * as ImagePicker from 'expo-image-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 // custom component imports
 import Spacer from '../../components/Spacer'
 import ThemedText from '../../components/ThemedText'
 import ThemedView from '../../components/ThemedView'
 import ThemedButton from '../../components/ThemedButton'
-import ThemedLogo from '../../components/ThemedLogo'
 import ThemedHr from '../../components/ThemedHr'
 import UserDataLine from '../../components/UserDataLine'
 import UserEditLine from '../../components/UserEditLine'
 import ModalButtons from '../../components/ModalButtons'
-
 // state, hooks and context imports
 import { useState, useEffect } from 'react'
-import { useUser } from '../../hooks/useUser'
+import { useUser } from '../../contexts/UserContext'
 import { useTheme } from '../../contexts/ThemeContext'
-import { useMedInfo } from '../../contexts/medInfoContext'
-
+import { useMedInfo } from '../../contexts/MedInfoContext'
 // color imports
 import { Colors } from '../../constants/colors'
 
+// async storage consts
+const IMG_KEY = 'user_profile_image'
+const DEFAULT_AVATAR = require('../../assets/img/default-avatar.png')
+
+
+
 // Profile tab page handling displaying user info
 const Profile = () => {
+    // avatar related consts. Can you tell im adding them last?
+    const [imageUri, setImageUri] = useState(null);
+    const [imageError, setImageError] = useState(false);
+
     // few state const. I should have probably used error, setError, but I could not be bothered
     const [editInfo, setEditInfo] = useState(false);
     const [errMessage, setErrMessage] = useState(null)
@@ -49,12 +58,39 @@ const Profile = () => {
         RecentScreenInfo: null,
     });
 
-    // our initial render, fetching the data from the DB
+    // quick little function to fetch saved image URI from storage
+    const loadImage = async () => {
+        const saved = await AsyncStorage.getItem(IMG_KEY);
+        if (saved) {
+            setImageUri(saved);
+        }
+    };
+
+    // function to pick user PFP with allowance for editing and set ratio of 1:1
+    const pickImage = async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images'],
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.8,
+        });
+
+        // if the process was not cancelled, store URI
+        if (!result.canceled) {
+          const uri = result.assets[0].uri;
+          setImageError(false);
+          setImageUri(uri);
+          await AsyncStorage.setItem(IMG_KEY, uri);
+        }
+    };
+
+    // our initial render, fetching the data from the DB ++ loading the user image
     // we use user.$id because a guest without an id cannot enter the dashboard
     // also since createRow wont let me do that otherwise
     useEffect(() => {
         // fetching the data
         fetchMedInfoById(user.$id);
+        loadImage();
     }, []);
 
     // another useEffect function
@@ -157,7 +193,7 @@ const Profile = () => {
     return (
         <ThemedView safe style={styles.container}>
             <ScrollView
-                style={{backgroundColor: theme.background, width: '100%' }}
+                style={{backgroundColor: theme.background, width: '100%', height: '100%' }}
                 // vvv another coconut.png
                 contentContainerStyle={{alignItems: 'center'}}
                 endFillColor={theme.background}
@@ -166,7 +202,14 @@ const Profile = () => {
                 <Spacer />
                 {/* user Header with username & avatar */}
                 <View style={[styles.usernameSection, { flexDirection: 'row' }]}>
-                    <ThemedLogo style={styles.avatar} />
+
+                <Pressable onPress={pickImage}>
+                    <Image source={
+                        (imageUri && !imageError) ? { uri: imageUri } : DEFAULT_AVATAR }
+                        style={styles.avatar}
+                    />
+                </Pressable>
+
                     <ThemedText title={true} style={styles.heading}>
                         {user.email}
                     </ThemedText>
@@ -213,6 +256,7 @@ const Profile = () => {
                     animationType={'slide'}
                     transparent={true}
                     visible={editInfo}
+                    backdropColor={theme.navBackground}
                     //onRequestClose={() => {setEditInfo(!editInfo)}}
                 >
 
@@ -220,6 +264,9 @@ const Profile = () => {
                         <ScrollView showsVerticalScrollIndicator={false}>
                             {/* I wanted to make this as compact as <UserDataLine/> but failed miserably */}
                             <View style={[styles.modalView, {backgroundColor: theme.navBackground}]}>
+                                <Text style={{ color: theme.text, textAlign: 'center', fontSize: 20, fontWeight: 500 }}>
+                                    Edit Health information
+                                </Text>
                                 <UserEditLine
                                     title={'Full Name:'}
                                     placeholderText={'N/A'}
@@ -305,6 +352,8 @@ const styles = StyleSheet.create({
         flex: 1,
         //justifyContent: "center",
         alignItems: 'center',
+        width: '100%',
+        height: '100%'
     },
     heading: {
         fontWeight: 'bold',
@@ -336,19 +385,11 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     modalView: {
-        margin: 20,
+        margin: 10,
         borderRadius: 20,
         padding: 15,
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
         elevation: 5,
-        borderWidth: 1,
     },
 // ErrMessage related CSS
     error: {

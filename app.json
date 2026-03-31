@@ -34,7 +34,11 @@
     },
     "plugins": [
       "expo-router",
-      "expo-font"
+      "expo-font",
+      ["expo-navigation-bar",
+      {
+        "visibility": "hidden"
+      }]
     ],
     "extra": {
       "router": {},

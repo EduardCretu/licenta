@@ -1,128 +1,124 @@
 import { StyleSheet, View, Switch, Text, TextInput, TouchableWithoutFeedback, Keyboard } from 'react-native'
-
+// context-hook imports
 import { useTheme } from '../../contexts/ThemeContext'
-import { useUser } from '../../hooks/useUser'
-import { useMedInfo } from '../../contexts/medInfoContext'
-
+import { useUser } from '../../contexts/UserContext'
+import { useMedInfo } from '../../contexts/MedInfoContext'
+// custom component imports
 import Spacer from "../../components/Spacer"
 import ThemedText from "../../components/ThemedText"
 import ThemedView from "../../components/ThemedView"
 import ThemedButton from '../../components/ThemedButton'
-
+// color related imports
 import { Colors } from '../../constants/colors'
 
 // settings tab page tasked with handling account management
 const Settings = () => {
-  const { isDark, toggleTheme, theme } = useTheme()
-  const { user, logout, deleteAccount } = useUser()
-  const { deleteMedInfo } = useMedInfo()
+    const { isDark, toggleTheme, theme } = useTheme()
+    const { user, logout, deleteAccount } = useUser()
+    const { deleteMedInfo } = useMedInfo()
 
-  async function handleDeleteAcc() {
+    async function handleDeleteAcc() {
     await deleteMedInfo(user.$id);
     await deleteAccount();
-  }
+    }
 
 
-  return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <ThemedView safe style={styles.mainContainer}>
-        <Spacer height={20}/>
+    return (
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <ThemedView safe style={styles.mainContainer}>
+                <Spacer height={20}/>
 
-        <ThemedText title style={styles.heading}>
-          Settings
-        </ThemedText>
-        <Spacer />
-    
-        <ThemedText style={styles.heading}>App Options</ThemedText>
+                <ThemedText title style={styles.heading}>
+                    Settings
+                </ThemedText>
+                <Spacer />
 
-        <View style={[styles.container, {backgroundColor: theme.uiBackground}]}>
+                <ThemedText style={styles.heading}>App Options</ThemedText>
 
-          <ThemedText style={styles.label}>
-            {isDark ? 'Dark Mode' : 'Light Mode'}
-          </ThemedText>
+                <View style={[styles.container, {backgroundColor: theme.uiBackground}]}>
 
-          <Switch
-            value={isDark}
-            onValueChange={toggleTheme}
-            thumbColor={isDark ? '#fff' : '#fff'}
-            trackColor={{ false: '#767577', true: Colors.primary }}
-          />
-        </View>
+                <ThemedText style={styles.label}>
+                    {isDark ? 'Dark Mode' : 'Light Mode'}
+                </ThemedText>
 
-        <ThemedText style={styles.heading}>Account Options</ThemedText>
-        <View style={[styles.container, {backgroundColor: theme.uiBackground}]}>
-          <ThemedText style={styles.label}>
-            Change Email
-          </ThemedText>
-          <TextInput
-            style={{color: theme.text, width: 150}}
-            placeholder={user.email}
-            placeholderTextColor={theme.text}
+                <Switch
+                    value={isDark}
+                    onValueChange={toggleTheme}
+                    thumbColor={isDark ? '#fff' : '#fff'}
+                    trackColor={{ false: '#767577', true: Colors.primary }}
+                />
+                </View>
 
-          />
-        </View>
-        <View style={[styles.container, {backgroundColor: theme.uiBackground}]}>
-          <ThemedText style={styles.label}>
-            Change Password
-          </ThemedText>
-          <TextInput
-            style={{color: theme.text, width: 150}}
-            placeholder="New Password..."
-            placeholderTextColor={theme.text}
+                <ThemedText style={styles.heading}>Account Options</ThemedText>
 
-          />
-        </View>
+                <View style={[styles.container, {backgroundColor: theme.uiBackground}]}>
 
+                    <ThemedText style={styles.label}>
+                        Change Email
+                    </ThemedText>
+                    <TextInput
+                        style={{color: theme.text, width: 150}}
+                        placeholder={user.email}
+                        placeholderTextColor={theme.text}
+                    />
+                </View>
+                <View style={[styles.container, {backgroundColor: theme.uiBackground}]}>
+                    <ThemedText style={styles.label}>
+                        Change Password
+                    </ThemedText>
+                    <TextInput
+                        style={{color: theme.text, width: 150}}
+                        placeholder="New Password..."
+                        placeholderTextColor={theme.text}
+                    />
+                </View>
 
+                <Spacer/>
+                <View style={[styles.container, {backgroundColor: theme.uiBackground, paddingRight:5}]}>
+                    <ThemedText style={styles.label}>
+                        Account Termination
+                    </ThemedText>
+                    <ThemedButton style={{backgroundColor: Colors.warning, padding: 10}} onPress={handleDeleteAcc}>
+                        <Text style={{color: 'white'}}>
+                            DELETE ACCOUNT
+                        </Text>
+                    </ThemedButton>
+                </View>
 
-        <Spacer/>
-        <View style={[styles.container, {backgroundColor: theme.uiBackground, paddingRight:5}]}>
-          <ThemedText style={styles.label}>
-            Account Termination
-          </ThemedText>
-          <ThemedButton style={{backgroundColor: Colors.warning, padding: 10}} onPress={handleDeleteAcc}>
-            <Text style={{color: 'white'}}>
-              DELETE ACCOUNT
-            </Text>
-          </ThemedButton>
-        </View>
+                <ThemedButton onPress={logout}>
+                    <Text style={{color:'white'}}>
+                        Logout
+                    </Text>
+                </ThemedButton>
 
-        
-
-        <ThemedButton onPress={logout}>
-          <Text style={{color:'white'}}>
-            Logout
-          </Text>
-        </ThemedButton>
-
-      </ThemedView>
-    </TouchableWithoutFeedback>
-  )
+            </ThemedView>
+        </TouchableWithoutFeedback>
+    )
 }
 
 export default Settings
 
 const styles = StyleSheet.create({
-  mainContainer: {
-    flex: 1,
-    alignItems: 'center'
-  },
-  heading: {
-    fontWeight: "bold",
-    fontSize: 18,
-    textAlign: "center",
-  },
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-    marginVertical: 8,
-    width: '95%',
-    borderRadius: 6,
-    height: 50
-  },
-  label: {
-    fontSize: 16,
-  },
+    mainContainer: {
+        flex: 1,
+        alignItems: 'center'
+    },
+    heading: {
+        fontWeight: "bold",
+        fontSize: 18,
+        textAlign: "center",
+    },
+    container: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 10,
+        marginVertical: 8,
+        width: '95%',
+        borderRadius: 6,
+        height: 50
+    },
+    label: {
+        fontSize: 16,
+    },
 })
