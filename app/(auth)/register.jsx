@@ -1,16 +1,15 @@
 import { StyleSheet, Text, TouchableWithoutFeedback, Keyboard} from 'react-native'
 import { Link } from 'expo-router'
-
+// context-hook imports
 import { useState } from 'react'
-import { useUser } from '../../hooks/useUser'
-import { useMedInfo } from '../../contexts/medInfoContext'
+import { useUser } from '../../contexts/UserContext'
 //Themed components
 import ThemedView from '../../components/ThemedView'
 import ThemedText from '../../components/ThemedText'
 import Spacer from '../../components/Spacer'
 import ThemedButton from '../../components/ThemedButton'
 import ThemedTextInput from '../../components/ThemedTextInput'
-
+// color relate imports
 import { Colors } from '../../constants/colors'
 
 // auth page to register the user to appwrite auth
@@ -35,54 +34,54 @@ const Register = () => {
     }
     
     // <- Wraps whole page in a listener which dismisses the keyboard on pressing elsewhere
-  return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ThemedView safe style={styles.container}>
-            <Spacer/>
-            <ThemedText title style={styles.title}>Register for an account</ThemedText>
-            {/* vv-- email input field. May change to username*/}
-            <ThemedTextInput 
-            placeholder='Email' 
-            style={styles.txtInput}
-            keyboardType= "Email-address"
-            autoCorrect={false} 
-            autoComplete={'off'}
-            onChangeText={setEmail}
-            value={email}
-            />
-            {/* vv-- password input field */}
-            <ThemedTextInput 
-            placeholder='Password' 
-            style={styles.txtInput}
-            keyboardType= "password" 
-            autoCorrect={false} 
-            autoComplete={'off'}          
-            secureTextEntry
-            onChangeText={setPassword}
-            value={password}
-            />
+    return (
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <ThemedView safe style={styles.container}>
+                <Spacer/>
+                <ThemedText title style={styles.title}>Register for an account</ThemedText>
+                {/* vv-- email input field. May change to username*/}
+                <ThemedTextInput
+                    placeholder='Email'
+                    style={styles.txtInput}
+                    keyboardType= "Email-address"
+                    autoCorrect={false}
+                    autoComplete={'off'}
+                    onChangeText={setEmail}
+                    value={email}
+                />
+                {/* vv-- password input field */}
+                <ThemedTextInput
+                    placeholder='Password'
+                    style={styles.txtInput}
+                    keyboardType= "password"
+                    autoCorrect={false}
+                    autoComplete={'off'}
+                    secureTextEntry
+                    onChangeText={setPassword}
+                    value={password}
+                />
 
 
-            <ThemedButton onPress={submitHandler}> 
-                <Text style={{color: '#f2f2f2'}}>Register</Text>
-            </ThemedButton>
+                <ThemedButton onPress={submitHandler}>
+                    <Text style={{color: '#f2f2f2'}}>Register</Text>
+                </ThemedButton>
 
-            <Spacer/>
+                <Spacer/>
 
-            {error && <Text style={styles.error}>{error}</Text>}
+                {error && <Text style={styles.error}>{error}</Text>}
 
-            <Spacer height={100}/>
+                <Spacer height={100}/>
 
-            {/* rerouting to /login when pressed */}
-            <Link href='/login'>
-                <ThemedText style={{ textAlign: "center" }}>
-                    Have an account already? Login instead
-                </ThemedText>
-            </Link>
+                {/* rerouting to /login when pressed */}
+                <Link href='/login'>
+                    <ThemedText style={{ textAlign: "center" }}>
+                        Have an account already? Login instead
+                    </ThemedText>
+                </Link>
 
-        </ThemedView>
-    </TouchableWithoutFeedback>
-  )
+            </ThemedView>
+        </TouchableWithoutFeedback>
+    )
 }
 
 export default Register

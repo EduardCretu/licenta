@@ -1,21 +1,18 @@
 import {StyleSheet, ScrollView, RefreshControl, Text, View, Modal, Pressable } from 'react-native';
-import React, { useState, useEffect, useCallback } from 'react';
-
+import { useState, useEffect, useCallback } from 'react';
 // custom component imports
 import Spacer from '../../components/Spacer';
 import ThemedText from '../../components/ThemedText';
 import ThemedView from '../../components/ThemedView';
 import ThemedButton from '../../components/ThemedButton';
 import ModalButtons from '../../components/ModalButtons'
-
+// notification related imports
 import * as Notifications from 'expo-notifications';
-
 // color imports
 import { useTheme } from '../../contexts/ThemeContext';
 import { Colors } from '../../constants/colors';
-
+// import of an array of weekday names
 import { weekdayDataString } from '../../constants/dropdownFields';
-
 
 const Reminders = () => {
     const [notifications, setNotifications] = useState([]);

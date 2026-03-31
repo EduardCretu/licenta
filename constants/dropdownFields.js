@@ -1,13 +1,13 @@
+// File exporting constants, be it objects arrays or otherwise. Don't judge me its O(1)
+
 const notificationTypeData = [
     { label: '...', value: null },
     { label: 'One Time', value: 5 },
     { label: 'Daily', value: 2 },
     { label: 'Weekly', value: 3 },
     { label: 'Monthly', value: 4 },
-    //{ label: 'Custom', value: 6 },
 ]
 const minuteData = [
-    //{ label: '...', value: null},
     { label: '0', value: 0 },
     { label: '1', value: 1 },
     { label: '2', value: 2 },
@@ -71,7 +71,6 @@ const minuteData = [
 ]
 
 const hourData = [
-    //{ label: '...', value: null},
     { label: '0', value: 0 },
     { label: '1', value: 1 },
     { label: '2', value: 2 },
@@ -98,7 +97,6 @@ const hourData = [
     { label: '23', value: 23 },
 ]
 const weekdayData = [
-    //{ label: '...', value: null},
     { label: 'Sunday', value: 1 },
     { label: 'Monday', value: 2 },
     { label: 'Tuesday', value: 3 },
@@ -116,8 +114,8 @@ const weekdayDataString = [
               'Friday',
               'Saturday'
             ];
+
 const monthData = [
-    //{ label: '...', value: null},
     { label: 'January', value: 1 },
     { label: 'February', value: 2 },
     { label: 'March', value: 3 },
@@ -132,7 +130,6 @@ const monthData = [
     { label: 'December', value: 12 },
 ]
 const monthlyDayData = [
-    //{ label: '...', value: null},
     { label: '1', value: 1 },
     { label: '2', value: 2 },
     { label: '3', value: 3 },

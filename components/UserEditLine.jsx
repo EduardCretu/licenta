@@ -61,12 +61,14 @@ const styles = StyleSheet.create({
         },
         label: {
             fontSize: 14,
+            width: '45%'
         },
         inputField: {
-            width: '55%',
+            width: '50%',
             borderWidth: 1,
             borderRadius: 6,
-            marginLeft: 5
+            marginLeft: 5,
+            paddingLeft: 10,
         },
         focusedField: {
             borderColor: Colors.primary

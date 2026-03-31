@@ -1,6 +1,7 @@
 import { View } from 'react-native'
 import { useTheme } from '../contexts/ThemeContext'
 
+// simple HR component. Admittedly a bit overkill, since I only used it once.
 const ThemedHr = ({width='90%'}) => {
     const { theme } = useTheme()
   return (

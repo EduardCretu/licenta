@@ -1,10 +1,10 @@
-import { useColorScheme, TextInput } from 'react-native'
+import { TextInput } from 'react-native'
 import {useState} from 'react'
 import { Colors } from '../constants/colors'
 
 import { useTheme } from '../contexts/ThemeContext'
 
-
+// themed text input
 const ThemedTextInput = ({style, ...props}) => {
     const { theme } = useTheme()
     const [isFocused, setIsFocused] = useState(false)

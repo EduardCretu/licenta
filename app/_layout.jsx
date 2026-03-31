@@ -1,75 +1,32 @@
+import { useEffect } from "react";
 import { Slot } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { UserProvider } from "../contexts/userContext";
+// context-hook imports
+import { UserProvider } from "../contexts/UserContext";
 import { ThemeProvider } from "../contexts/ThemeContext";
-import { MedInfoProvider } from "../contexts/medInfoContext";
-
+import { MedInfoProvider } from "../contexts/MedInfoContext";
+// notification related imports
 import { initNotifications }  from "../lib/notifications"
-import { useEffect } from "react";
-
+// the little tray of buttons at the bottom of the screen
+import * as NavigationBar from 'expo-navigation-bar'
 
 
 // Root Layout to route all pages and wrap everything in User & Theme providers.
 export default function RootLayout() {
-
-  useEffect(() => {
+    const visibility = NavigationBar.useVisibility();
+    // on first render initialise the notifications
+    useEffect(() => {
     initNotifications();
-  }, [])
-  return (
-    <MedInfoProvider>
-        <UserProvider>
-          <ThemeProvider>
-            <StatusBar hidden />
-            <Slot />
-          </ThemeProvider>
-        </UserProvider>
-    </MedInfoProvider>
-
-  );
+    }, [])
+    // return the wrap and render the children (including those in folders. Looking at you <Stack/>)
+    return (
+        <MedInfoProvider>
+            <UserProvider>
+                <ThemeProvider>
+                    <StatusBar hidden />
+                    <Slot />
+                </ThemeProvider>
+            </UserProvider>
+        </MedInfoProvider>
+    );
 }
-
-/*
-import * as Notifications from 'expo-notifications';
-import { Platform } from 'react-native';
-
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
-
-
-
-
-
-
-
-import * as Linking from 'expo-linking'
-import { useEffect } from 'react';
-import { useNavigation } from '@react-navigation/native';
-
-const navigation = useNavigation();
-
-  useEffect(() => {
-    const handleUrl = (event) => {
-      const { queryParams } = Linking.parse(event.url);
-      const { userId, secret } = queryParams;
-
-      // Navigate to passRecovery screen with userId & secret
-      if (userId && secret) {
-        navigation.navigate('PassRecovery', { userId, secret });
-      }
-    };
-
-    Linking.addEventListener('url', handleUrl);
-
-    // Handle initial URL if app was closed
-    Linking.getInitialURL().then((url) => {
-      if (url) handleUrl({ url });
-    });
-
-    return () => Linking.removeEventListener('url', handleUrl);
-  }, [navigation]);
-*/

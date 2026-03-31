@@ -2,6 +2,7 @@ import { View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTheme } from '../contexts/ThemeContext'
 
+// cornerstone of the app, themed view with SafeArea insets
 const ThemedView = ({safe=false, style, ...props}) => {
   const {theme} = useTheme()
 

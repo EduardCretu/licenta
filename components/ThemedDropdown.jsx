@@ -1,28 +1,32 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+// dev related imports
+import { StyleSheet } from 'react-native';
+// the core of the component
 import { Dropdown } from 'react-native-element-dropdown';
-
-import ThemedView from './ThemedView'
-import ThemedText from './ThemedText'
-
+// context-hook import
+import { useState } from 'react';
+// color related imports
 import { useTheme } from '../contexts/ThemeContext'
 import { Colors } from '../constants/colors'
 
-
-const ThemedDropdownComponent = ({data,
+// component rendering a dropdown element, kitted with thematic styling and the ability 
+// to pass values between it and importing pages
+const ThemedDropdownComponent = ({
+    // property hell.
+    data,
     showSearch=false,
     value,
     onChange,
-    styleDropdown,
+    styleDropdown, 
     stylePlaceholder,
     styleSelectedText,
     styleInputSearch,
     styleItemContainer,
     styleBaseContainer,
     mode='default'
+    // end of property hell
     }) => {
 
-
+    // theme related consts
     const { theme } = useTheme()
     const [isFocused, setIsFocused] = useState()
 
@@ -87,16 +91,16 @@ const ThemedDropdownComponent = ({data,
                 }
             }}
             autoScroll={false}
-            data={data}
-            search={showSearch}
+            data={data} // data property, taking external array (in our case array objects in /constants/dropdownFields)
+            search={showSearch} // search property, by default not included
             maxHeight={250}
             labelField="label"
             valueField="value"
             placeholder="..."
             searchPlaceholder="Search..."
-            value={value}
+            value={value} // take extern value
             onChange={item => {
-              onChange?.(item.value, item);
+              onChange?.(item.value, item); // if extern prop 'onChange' exists, swap current item with selected
             }}
             onFocus={() => {setIsFocused(true)}}
             onBlur={() => {setIsFocused(false)}}
