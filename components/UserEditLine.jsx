@@ -11,16 +11,16 @@ import { Colors } from '../constants/colors'
 
 
 // custom component that renders a text label next two a text input
-const UserEditLine = ({style, title, placeholderText, ...props}) => {
+const UserEditLine = ({styleView, styleInput, styleTxt, title, placeholderText, ...props}) => {
     // consts for theme and highlighting the focused component
     const [isFocused, setIsFocused] = useState()
     const { theme } = useTheme()
 
     // return the component
     return (
-        <View style={[styles.inputFieldView, {backgroundColor: theme.uiBackground}]}>
+        <View style={[styles.inputFieldView, {backgroundColor: theme.uiBackground}, styleView]}>
             {/* label */}
-            <ThemedText style={styles.label}>
+            <ThemedText style={[styles.label, styleTxt]}>
                 {title}
             </ThemedText>
             {/* the text input */}
@@ -33,7 +33,8 @@ const UserEditLine = ({style, title, placeholderText, ...props}) => {
                         borderColor: theme.background
                     },
                     // if the text is focused on use this CSS object as well
-                    isFocused && styles.focusedField
+                    isFocused && styles.focusedField,
+                    styleInput
                 ]}
                 placeholder={placeholderText}
                 placeholderTextColor={theme.text}

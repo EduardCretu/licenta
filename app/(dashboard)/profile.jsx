@@ -245,7 +245,7 @@ const Profile = () => {
                 <Spacer />
 
                 {/* Button to 'handle the editing of user info */}
-                <ThemedButton onPress={handleEditPress}>
+                <ThemedButton primary onPress={handleEditPress}>
                     <Text style={{ color: 'white', textAlign: 'center' }}>
                         Edit health information?
                     </Text>
@@ -330,6 +330,7 @@ const Profile = () => {
 
                                 {/*custom set of modal buttons. Way too unnecessary, but I proved to myself I can make them. */}
                                 <ModalButtons
+                                    styleSub={{backgroundColor: Colors.primary}}
                                     subText={'Submit'}
                                     cancText={'Cancel'}
                                     onSubmit={handlerSubmitPress}

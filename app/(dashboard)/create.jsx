@@ -365,7 +365,7 @@ const Create = () => {
                     </Modal>}
 
                     {/*submission button only appears if notificationType is valid value*/}
-                    {(notificationType !== null) && <ThemedButton onPress={handlePress}>
+                    {(notificationType !== null) && <ThemedButton primary onPress={handlePress}>
                         <Text style={{ color: 'white' }}>
                             Schedule Notification
                         </Text>

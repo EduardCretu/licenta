@@ -142,7 +142,7 @@ const Reminders = () => {
 
                 {/*Only show delete all button if there are notification objects to delete */}
                 {notifications.length > 0 && (
-                    <ThemedButton onPress={() => setDelAllWin(true)}>
+                    <ThemedButton warning onPress={() => setDelAllWin(true)}>
                         <Text style={{ color: 'white', fontSize: 16, fontWeight: 500 }}>
                             Delete all notifications
                         </Text>

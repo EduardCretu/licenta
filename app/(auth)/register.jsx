@@ -3,6 +3,7 @@ import { Link } from 'expo-router'
 // context-hook imports
 import { useState } from 'react'
 import { useUser } from '../../contexts/UserContext'
+import { useTheme } from '../../contexts/ThemeContext'
 //Themed components
 import ThemedView from '../../components/ThemedView'
 import ThemedText from '../../components/ThemedText'
@@ -18,9 +19,10 @@ const Register = () => {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState(null)
-
+    // consuming user context to call register function
     const { register } = useUser()
-    const { createMedInfo } = useMedInfo()
+
+    const { theme } = useTheme()
 
     // function that uses and calls appwrite 'register' function from their auth API
     const submitHandler = async () =>{
@@ -62,8 +64,11 @@ const Register = () => {
                 />
 
 
-                <ThemedButton onPress={submitHandler}>
-                    <Text style={{color: '#f2f2f2'}}>Register</Text>
+                <ThemedButton
+                    style={{width: '40%'}}
+                    onPress={submitHandler}
+                >
+                    <Text style={{color: '#f2f2f2', textAlign: 'center'}}>Register</Text>
                 </ThemedButton>
 
                 <Spacer/>
@@ -73,7 +78,10 @@ const Register = () => {
                 <Spacer height={100}/>
 
                 {/* rerouting to /login when pressed */}
-                <Link href='/login'>
+                <Link
+                    style={{borderBottomWidth: 1, borderColor: theme.text}}
+                    href='/login'
+                >
                     <ThemedText style={{ textAlign: "center" }}>
                         Have an account already? Login instead
                     </ThemedText>

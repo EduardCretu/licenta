@@ -3,6 +3,7 @@ import { Link } from 'expo-router'
 // Context-hook related imports
 import { useState } from 'react'
 import { useUser } from '../../contexts/UserContext'
+import { useTheme } from '../../contexts/ThemeContext'
 //Themed components
 import ThemedView from '../../components/ThemedView'
 import ThemedText from '../../components/ThemedText'
@@ -20,6 +21,7 @@ const Login = () => {
     const [error, setError] = useState(null)
     // Consuming context
     const { login } = useUser()
+    const { theme } = useTheme()
 
     // little function which tries to login in user based on email and password
     const submitHandler = async () => {
@@ -37,7 +39,7 @@ const Login = () => {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <ThemedView safe style={styles.container}>
                 <Spacer/>
-                <ThemedText title style={styles.title}>Login to your account</ThemedText>
+                <ThemedText title style={styles.title}>Log in to your account</ThemedText>
 
                 <ThemedTextInput
                     placeholder='Email'
@@ -59,7 +61,10 @@ const Login = () => {
                     onChangeText={setPassword}
                     value={password}
                 />
-                <Link href='/forgotPassword'>
+                <Link
+                    style={{borderBottomWidth: 0.8, borderColor: theme.text}}
+                    href='/forgotPassword'
+                >
                     <ThemedText style={{ textAlign: "center" }}>
                         Forgot your password?
                     </ThemedText>
@@ -67,8 +72,11 @@ const Login = () => {
                 <Spacer/>
 
 
-                <ThemedButton onPress={submitHandler}>
-                    <Text style={{color: '#f2f2f2'}}>Login</Text>
+                <ThemedButton
+                    style={{width: '40%'}}
+                    onPress={submitHandler}
+                >
+                    <Text style={{color: '#f2f2f2', textAlign: 'center'}}>Login</Text>
                 </ThemedButton>
 
                 <Spacer/>
@@ -79,8 +87,11 @@ const Login = () => {
                 <Spacer height={100}/>
 
                 {/* rerouting to /login when pressed */}
-                <Link href='/register'>
-                    <ThemedText style={{ textAlign: "center" }}>
+                <Link
+                    style={{borderBottomWidth: 0.6, borderColor: theme.text}}
+                    href='/register'
+                >
+                    <ThemedText style={{ textAlign: "center"}}>
                         Dont have an account? register instead
                     </ThemedText>
                 </Link>

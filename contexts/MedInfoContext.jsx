@@ -1,9 +1,8 @@
 // imports related to context creation
-import { createContext, useContext, useState, useEffect } from 'react'
-
+import { createContext, useContext, useState } from 'react'
 // importing DB related objects
 import { tablesDB, DB_ID, TABLE_ID } from '../lib/appwrite'
-import { ID, Query } from 'react-native-appwrite'
+import { Query } from 'react-native-appwrite'
 
 // creating the context
 export const MedInfoContext = createContext()
@@ -32,19 +31,19 @@ export function MedInfoProvider({ children }) {
 
     // function to fetch user row by row ID, which row.$id === user.$id
     async function fetchMedInfoById(ID) {
-          try {
-                const response = await tablesDB.listRows({
-                  databaseId: DB_ID,
-                  tableId: TABLE_ID,
-                  queries: [Query.equal('$id', ID)],
-                });
+        try {
+            const response = await tablesDB.listRows({
+              databaseId: DB_ID,
+              tableId: TABLE_ID,
+              queries: [Query.equal('$id', ID)],
+            });
 
-            setMedInfo(response);
-            // return reponse promise or null for createRow() function
-            return response.rows[0] ?? null
-          } catch (err) {
-            throw new Error(err.message);
-         }
+        setMedInfo(response);
+        // return reponse promise or null for createRow() function
+        return response.rows[0] ?? null
+        } catch (err) {
+        throw new Error(err.message);
+        }
     }
     // function to create user row
     async function createMedInfo(ID) {
@@ -75,21 +74,21 @@ export function MedInfoProvider({ children }) {
     // function creates a user row only the user row with user.$id === row.$id cannot be found by fetch
     // ergo make a row if user has no row
     async function ensureMedInfo(ID) {
-          try {
-              const existing = await fetchMedInfoById(ID)
+        try {
+            const existing = await fetchMedInfoById(ID)
 
-              if (existing) {
-                  return existing
-              }
+            if (existing) {
+                return existing
+            }
 
-              const created = await createMedInfo(ID)
-              setMedInfo(created)
+            const created = await createMedInfo(ID)
+            setMedInfo(created)
 
-              return created
-          }
-          catch (err) {
-              throw new Error(err.message)
-          }
+            return created
+        }
+        catch (err) {
+            throw new Error(err.message)
+        }
     }
 
     // function to delete user row, only called when user deletes account
@@ -107,11 +106,20 @@ export function MedInfoProvider({ children }) {
     }
 
     return (
-        <MedInfoContext.Provider value={{medInfo, updateMedInfo, fetchMedInfoById, createMedInfo, deleteMedInfo, ensureMedInfo}}>
+        <MedInfoContext.Provider value={{
+            medInfo,
+            updateMedInfo,
+            fetchMedInfoById,
+            createMedInfo,
+            deleteMedInfo,
+            ensureMedInfo
+            }}
+        >
             {children}
         </MedInfoContext.Provider>
     )
 }
 
+// custom hook to consume the context
 export const useMedInfo = () => useContext(MedInfoContext)
 

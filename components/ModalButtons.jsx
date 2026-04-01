@@ -12,7 +12,7 @@ import { Colors } from '../constants/colors'
 
 
 // component specifically for 3 modals. i am not joking. i hate myself
-const ModalButtons = ({subText, cancText, placeholderText, onSubmit, onCancel}) => {
+const ModalButtons = ({subText, cancText, placeholderText, onSubmit, onCancel, styleSub, styleCanc}) => {
     // consuming the theme
     const { theme } = useTheme()
 
@@ -20,7 +20,7 @@ const ModalButtons = ({subText, cancText, placeholderText, onSubmit, onCancel}) 
         <View style={styles.btnView}>
             {/* a little view with two buttons */}
             <ThemedButton
-                style={{ backgroundColor: Colors.primary, width: '45%',height: 55 }}
+                style={[{ backgroundColor: Colors.warning, width: '45%',height: 55 }, styleSub]}
                 onPress={onSubmit}
             >
                 <Text style={{ textAlign: 'center', color: 'white', fontSize: 18, fontWeight: 500 }}>
@@ -29,10 +29,10 @@ const ModalButtons = ({subText, cancText, placeholderText, onSubmit, onCancel}) 
             </ThemedButton>
 
             <ThemedButton
-                style={{ backgroundColor: Colors.warning, width: '45%',height: 55 }}
+                style={[{backgroundColor: theme.buttonColor, width: '45%',height: 55 }, styleCanc]}
                 onPress={onCancel}
             >
-                <Text style={{ textAlign: 'center', color: 'white', fontSize: 18, fontWeight: 500 }}>
+                <Text style={{ textAlign: 'center', color: theme.text, fontSize: 18, fontWeight: 500 }}>
                     {cancText}
                 </Text>
             </ThemedButton>
