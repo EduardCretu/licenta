@@ -36,7 +36,7 @@ export function UserProvider({ children }) {
                 password: newPassword,
                 oldPassword: currentPassword,
             });
-            / reload user information for consistency
+            // reload user information for consistency
             const response = await account.get();
             setUser(response);
         } catch (error) {
