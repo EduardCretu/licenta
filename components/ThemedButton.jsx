@@ -11,10 +11,10 @@ const ThemedButton = ({style, primary, warning, ...props}) => {
         style={({pressed})=>[
             styles.btn,
             {backgroundColor: theme.buttonColor},
+            style,
             primary && {backgroundColor: Colors.primary},
             warning && {backgroundColor: Colors.warning},
             pressed && styles.btnPressed,
-            style
         ]}
         {...props}
     />
