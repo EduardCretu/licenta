@@ -1,4 +1,4 @@
-import { StyleSheet, View, Switch, Text, TouchableWithoutFeedback, Keyboard, ScrollView, Pressable, Modal } from 'react-native'
+import { StyleSheet, View, Switch, Text, TouchableWithoutFeedback, Keyboard, ScrollView, Pressable, Modal, KeyboardAvoidingView, Platform } from 'react-native'
 // context-hook imports
 import { useTheme } from '../../contexts/ThemeContext'
 import { useUser } from '../../contexts/UserContext'
@@ -138,7 +138,7 @@ const Settings = () => {
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <ScrollView
-                style={{backgroundColor: theme.background, width: '100%', height: '100%' }}
+                style={{backgroundColor: theme.background, width: '100%', height: '100%', flex: 1 }}
                 // vvv another coconut.png
                 //contentContainerStyle={{alignItems: 'center'}}
                 endFillColor={theme.background}
@@ -323,15 +323,17 @@ const Settings = () => {
                                     placeholderText={'...'}
                                     value={email}
                                     onChangeText={(text) => setEmail(text)}
+                                    styleView={{height: 70}}
                                     styleTxt={{width: '25%'}}
-                                    styleInput={{width: '70%'}}
+                                    styleInput={{width: '70%', height: '80%'}}
                                 />
 
                                 <SecuredUserEditLine
                                     title="Password:"
-                                    placeholderText="Confirm Password..."
+                                    placeholderText="Confirm Password"
                                     value={emPass}
                                     onChangeText={(text) => setEmPass(text)}
+                                    iconSize={16}
                                 />
 
                                 {/*error && <Text style={styles.error}>{(error?.message?.split(':')[1]) === undefined ? (error?.message?.split(':')[0]) : (error?.message?.split(':')[1])}</Text>*/}
@@ -373,24 +375,26 @@ const Settings = () => {
                                 <ThemedText style={[styles.modalText, { fontSize: 25 }]}>
                                     Change Password
                                 </ThemedText>
-
                                 <SecuredUserEditLine
-                                    title={'Old Password:'}
+                                    title={'Old\nPassword:'}
                                     placeholderText={"Old Password"}
                                     value={pass}
                                     onChangeText={(text) => setPass(text)}
+                                    iconSize={16}
                                 />
                                 <SecuredUserEditLine
                                     title={'New\nPassword:'}
-                                    placeholderText="New Password..."
+                                    placeholderText={"New Password"}
                                     value={newPass}
                                     onChangeText={(text) => setNewPass(text)}
+                                    iconSize={16}
                                 />
                                 <SecuredUserEditLine
                                     title={'Confirm Password:'}
                                     placeholderText={"Confirm New Password"}
                                     value={newPassConf}
                                     onChangeText={(text) => setNewPassConf(text)}
+                                    iconSize={16}
                                 />
 
                                 {/*error && <Text style={styles.error}>{(error.message === undefined) ? (error) : (error?.message?.split(':')[1]) === undefined ? (error?.message?.split(':')[0]) : (error?.message?.split(':')[1])}</Text>*/}
@@ -526,7 +530,7 @@ const styles = StyleSheet.create({
 // Modal related CSS
     centeredView: {
         flex: 1,
-        justifyContent: 'center',
+        //justifyContent: 'center',
     },
     modalView: {
         margin: 20,
