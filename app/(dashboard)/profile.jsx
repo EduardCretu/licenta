@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Modal, ScrollView, Image, Pressable, Linking, Platform } from 'react-native'
+import { StyleSheet, Text, View, Modal, ScrollView, Image, Pressable, Linking, Platform, TouchableWithoutFeedback, Keyboard, Dimensions } from 'react-native'
 // imports related to avatar
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -11,6 +11,7 @@ import ThemedHr from '../../components/ThemedHr'
 import UserDataLine from '../../components/UserDataLine'
 import UserEditLine from '../../components/UserEditLine'
 import ModalButtons from '../../components/ModalButtons'
+import SecuredUserEditLine from '../../components/SecuredUserEditLine'
 // state, hooks and context imports
 import { useState, useEffect } from 'react'
 import { useUser } from '../../contexts/UserContext'
@@ -30,6 +31,11 @@ const Profile = () => {
     // avatar related consts. Can you tell im adding them last?
     const [imageUri, setImageUri] = useState(null);
     const [imageError, setImageError] = useState(false);
+
+    const [keyUp, setKeyUp] = useState(false)
+    const screenHeight = Dimensions.get('window').height;
+
+    const [location, setLocation] = useState('Pharmacy')
 
     // few state const. I should have probably used error, setError, but I could not be bothered
     const [editInfo, setEditInfo] = useState(false);
@@ -146,6 +152,7 @@ const Profile = () => {
         await updateMedInfo(user.$id, formData)
         // close the edit window
         setEditInfo(false)
+        setKeyUp(false)
         // refetch row for updated content
         await fetchMedInfoById(user.$id)
 
@@ -156,6 +163,7 @@ const Profile = () => {
         // close window, error and reset local obj data to fetched or null.
         setEditInfo(false)
         setErrMessage(false)
+        setKeyUp(false)
         setFormData({
             FullName: row?.FullName ?? null,
             DOB: row?.DOB?.split('T')[0] ?? null,
@@ -189,11 +197,11 @@ const Profile = () => {
         return true;
     }
 
-    // little function which redirects user toward maps with a 'pharmacy' query
-    const openMaps = async () => {
+    // little function which redirects user toward maps with a query
+    async function openMaps() {
         // console.log(Platform.OS)
         // check if user is on IOS or android and adjust query accordingly
-        const url = Platform.OS === 'ios' ? `http://maps.apple.com/?q=pharmacy` : `https://www.google.com/maps/search/?api=1&query=pharmacy`;
+        const url = Platform.OS === 'ios' ? `http://maps.apple.com/?q=${location}` : `https://www.google.com/maps/search/?api=1&query=${location}`;
         try {
             await Linking.openURL(url);
         }
@@ -205,201 +213,286 @@ const Profile = () => {
 
     // the components itself, should probs add a ScrollView
     return (
-        <ThemedView safe style={styles.container}>
-            <ScrollView
-                style={{backgroundColor: theme.background, width: '100%', height: '100%' }}
-                // vvv another coconut.png
-                contentContainerStyle={{alignItems: 'center'}}
-                endFillColor={theme.background}
-                showsVerticalScrollIndicator={false}
-            >
-                <Spacer />
-                {/* user Header with username & avatar */}
-                <View style={[styles.usernameSection, { flexDirection: 'row' }]}>
-
-                <Pressable onPress={pickImage}>
-                    <Image source={
-                        (imageUri && !imageError) ? { uri: imageUri } : DEFAULT_AVATAR }
-                        style={styles.avatar}
-                    />
-                </Pressable>
-
-                    <ThemedText title={true} style={styles.heading}>
-                        {user.email}
-                    </ThemedText>
-                </View>
-
-                <ThemedHr />
-
-                <Spacer />
-
-                {/*Beginning of user Info card */}
-                <View style={[styles.section, { backgroundColor: theme.navBackground }]}>
-                    <ThemedText title style={{ fontWeight: 'bold', fontSize: 20 }}>
-                        User Information
-                    </ThemedText>
-                    <Spacer height={20} />
-
-                    {/* Well well well.. Anyway. Basic UserData Lines to display the medical information without a trillion lines of code in one page. Ergo, 'modularity' */}
-                    {/*vvvvvvvvv To be automated and tied to user-info db/json */}
-                    <UserDataLine title={'Full name'} userData={row?.FullName ?? 'N/A'} />
-                    <UserDataLine title={'Date of Birth'} userData={row?.DOB?.split('T')[0] ?? 'YYYY-MM-DD'} />
-                    <UserDataLine title={'Address'} userData={row?.Address ?? 'N/A'} />
-                    <Spacer />
-                    <UserDataLine title={'Blood Type'} userData={row?.BloodType ?? 'N/A'} />
-                    <UserDataLine title={'Genetic Conditions'} userData={row?.GeneticCond ?? 'N/A'} />
-                    <UserDataLine title={'Chronic Illness'} userData={row?.ChronicIll ?? 'N/A'} />
-                    <UserDataLine title={'allergies'} userData={row?.Allergies ?? 'N/A'} />
-                    <UserDataLine title={'Medication'} userData={row?.Medications ?? 'N/A'} />
-                    <Spacer />
-                    <UserDataLine title={'Recent Screening Date'} userData={row?.RecentScreenDate?.split('T')[0] ?? 'YYYY-MM-DD'} />
-                    <UserDataLine title={'Recent Screening Info'} userData={row?.RecentScreenInfo ?? 'N/A'} />
-                </View>
-
-                <Spacer />
-
-                {/* Button to 'handle the editing of user info */}
-                <ThemedButton primary onPress={handleEditPress}>
-                    <Text style={{ color: 'white', textAlign: 'center', fontWeight: 500, fontSize: 16 }}>
-                        Edit health information?
-                    </Text>
-                </ThemedButton>
-
-                <Spacer/>
-
-                {/*maps section of the profile tab*/}
-                <ThemedText
-                    title
-                    style={styles.heading}
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <ThemedView safe style={styles.container}>
+                <ScrollView
+                    style={{backgroundColor: theme.background, width: '100%', height: '100%' }}
+                    // vvv another coconut.png
+                    contentContainerStyle={{alignItems: 'center'}}
+                    endFillColor={theme.background}
+                    showsVerticalScrollIndicator={false}
                 >
-                    Need to get to a Pharmacy?
-                </ThemedText>
+                    <Spacer />
+                    {/* user Header with username & avatar */}
+                    <View style={[styles.usernameSection, { flexDirection: 'row' }]}>
 
-                <Spacer/>
+                    <Pressable onPress={pickImage}>
+                        <Image source={
+                            (imageUri && !imageError) ? { uri: imageUri } : DEFAULT_AVATAR }
+                            style={styles.avatar}
+                        />
+                    </Pressable>
 
-                {/*Pressable Icon to send user to Mapws app to find pharmacy*/}
-                <Pressable
-                    onPress={openMaps}
-                    style={[
-                        styles.mapPressable,
-                        {
-                            backgroundColor: theme.uiBackground,
-                            borderColor: theme.navBackground,
-                        }]}
-                >
-                    <Image
-                        source={require('../../assets/img/mapsRedirectIcon.png')}
-                        style={{height: '90%', width: '90%'}}
-                    />
-                    <View
-                        style={[
-                            styles.mapView,
-                            {
-                                backgroundColor:theme.navBackground,
-                            }
-                        ]}
-                    >
-                        <ThemedText
-                            style={styles.heading}
-                        >
-                            Find Nearby Pharmacies
+                        <ThemedText title={true} style={styles.heading}>
+                            {user.email}
                         </ThemedText>
                     </View>
-                </Pressable>
 
-                <Spacer/>
+                    <ThemedHr />
 
-                {/* Modal window for editing user medical information */}
-                <Modal
-                    animationType={'slide'}
-                    transparent={true}
-                    visible={editInfo}
-                    backdropColor={theme.navBackground}
-                    //onRequestClose={() => {setEditInfo(!editInfo)}}
-                >
+                    <Spacer />
 
-                    <View style={styles.centeredView}>
-                        <ScrollView showsVerticalScrollIndicator={false}>
-                            {/* I wanted to make this as compact as <UserDataLine/> but failed miserably */}
-                            <View style={[styles.modalView, {backgroundColor: theme.navBackground}]}>
-                                <Text style={{ color: theme.text, textAlign: 'center', fontSize: 20, fontWeight: 500 }}>
-                                    Edit Health information
-                                </Text>
-                                <UserEditLine
-                                    title={'Full Name:'}
-                                    placeholderText={'N/A'}
-                                    value={formData.FullName}
-                                    onChangeText={(text) => setFormData((prev) => ({ ...prev, FullName: text }))}
-                                />
-                                <UserEditLine
-                                    title={'Date of Birth:'}
-                                    placeholderText={'N/A'}
-                                    value={formData.DOB}
-                                    onChangeText={(text) => setFormData((prev) => ({ ...prev, DOB: text }))}
+                    {/*Beginning of user Info card */}
+                    <View style={[styles.section, { backgroundColor: theme.navBackground }]}>
+                        <ThemedText title style={{ fontWeight: 'bold', fontSize: 20 }}>
+                            User Information
+                        </ThemedText>
+                        <Spacer height={20} />
 
-                                />
-                                <UserEditLine
-                                    title={'Address:'}
-                                    placeholderText={'N/A'}
-                                    value={formData.Address}
-                                    onChangeText={(text) => setFormData((prev) => ({ ...prev, Address: text }))}
-                                />
-                                <Spacer height={20}/>
-                                <UserEditLine
-                                    title={'Blood Type:'}
-                                    placeholderText={'N/A'}
-                                    value={formData.BloodType}
-                                    onChangeText={(text) => setFormData((prev) => ({ ...prev, BloodType: text }))}
-                                />
-                                <UserEditLine
-                                    title={'Genetic Conditions:'}
-                                    placeholderText={'N/A'}
-                                    value={formData.GeneticCond}
-                                    onChangeText={(text) => setFormData((prev) => ({ ...prev, GeneticCond: text }))}
-                                />
-                                <UserEditLine
-                                    title={'Chronic Illnesses:'}
-                                    placeholderText={'N/A'}
-                                    value={formData.ChronicIll}
-                                    onChangeText={(text) => setFormData((prev) => ({ ...prev, ChronicIll: text }))}
-                                />
-                                <UserEditLine
-                                    title={'Medications:'}
-                                    placeholderText={'N/A'}
-                                    value={formData.Medications}
-                                    onChangeText={(text) => setFormData((prev) => ({ ...prev, Medications: text }))}
-                                />
-                                <Spacer height={20}/>
-                                <UserEditLine
-                                    title={'Last Screening Date:'}
-                                    placeholderText={'N/A'}
-                                    value={formData.RecentScreenDate}
-                                    onChangeText={(text) => setFormData((prev) => ({ ...prev, RecentScreenDate: text }))}
-                                />
-                                <UserEditLine
-                                    title={'Last Screening Info:'}
-                                    placeholderText={'N/A'}
-                                    value={formData.RecentScreenInfo}
-                                    onChangeText={(text) => setFormData((prev) => ({ ...prev, RecentScreenInfo: text }))}
-                                />
-
-                                {/*error message displayed on inputting the wrong format in DOB and LSD */}
-                                {errMessage && <Text style={styles.error}>{errMessage}</Text>}
-
-                                {/*custom set of modal buttons. Way too unnecessary, but I proved to myself I can make them. */}
-                                <ModalButtons
-                                    styleSub={{backgroundColor: Colors.primary}}
-                                    subText={'Submit'}
-                                    cancText={'Cancel'}
-                                    onSubmit={handlerSubmitPress}
-                                    onCancel={handleCancelPress}
-                                />
-                            </View>
-                        </ScrollView>
+                        {/* Well well well.. Anyway. Basic UserData Lines to display the medical information without a trillion lines of code in one page. Ergo, 'modularity' */}
+                        {/*vvvvvvvvv To be automated and tied to user-info db/json */}
+                        <UserDataLine title={'Full name'} userData={row?.FullName ?? 'N/A'} />
+                        <UserDataLine title={'Date of Birth'} userData={row?.DOB?.split('T')[0] ?? 'YYYY-MM-DD'} />
+                        <UserDataLine title={'Address'} userData={row?.Address ?? 'N/A'} />
+                        <Spacer />
+                        <UserDataLine title={'Blood Type'} userData={row?.BloodType ?? 'N/A'} />
+                        <UserDataLine title={'Genetic Conditions'} userData={row?.GeneticCond ?? 'N/A'} />
+                        <UserDataLine title={'Chronic Illness'} userData={row?.ChronicIll ?? 'N/A'} />
+                        <UserDataLine title={'allergies'} userData={row?.Allergies ?? 'N/A'} />
+                        <UserDataLine title={'Medication'} userData={row?.Medications ?? 'N/A'} />
+                        <Spacer />
+                        <UserDataLine title={'Recent Screening Date'} userData={row?.RecentScreenDate?.split('T')[0] ?? 'YYYY-MM-DD'} />
+                        <UserDataLine title={'Recent Screening Info'} userData={row?.RecentScreenInfo ?? 'N/A'} />
                     </View>
-                </Modal>
-            </ScrollView>
-        </ThemedView>
+
+                    <Spacer />
+
+                    {/* Button to 'handle the editing of user info */}
+                    <ThemedButton primary onPress={handleEditPress}>
+                        <Text style={{ color: 'white', textAlign: 'center', fontWeight: 500, fontSize: 16 }}>
+                            Edit health information?
+                        </Text>
+                    </ThemedButton>
+
+                    <Spacer/>
+
+                    {/*maps section of the profile tab*/}
+                    <ThemedText
+                        title
+                        style={styles.heading}
+                    >
+                        Need to get to find Assistance?
+                    </ThemedText>
+                    <View
+                        style={{
+                            flexDirection:'row',
+                            width: '80%',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            backgroundColor: theme.navBackground,
+                            padding: 10,
+                            borderRadius: 10,
+                            margin: 10
+                            }}
+                    >
+                        <ThemedButton
+                            style={{margin: 3}}
+                            onPress={()=>{setLocation('Pharmacy')}}
+                            style={location === 'Pharmacy' ? {backgroundColor: Colors.primary} : {backgroundColor: theme.buttonColor} }
+                        >
+                            <Text
+                                style={[
+                                    location === 'Pharmacy' ? {color: theme.title, fontWeight: 500} : {color: theme.text, fontWeight: 400} ,
+                                    {
+                                        fontSize: 14,
+                                        width: 70,
+                                        textAlign: 'center'
+                                    }
+                                ]}
+                            >
+                                Pharmacy
+                            </Text>
+                        </ThemedButton>
+
+                        <ThemedButton
+                            style={{margin: 3}}
+                            onPress={()=>{setLocation('Hospital')}}
+                            style={location === 'Hospital' ? {backgroundColor: Colors.primary} : {backgroundColor: theme.buttonColor} }
+                        >
+                            <Text
+                                style={[
+                                    location === 'Hospital' ? {color: theme.title, fontWeight: 500} : {color: theme.text, fontWeight: 400} ,
+                                    {
+                                        fontSize: 14,
+                                        width: 70,
+                                        textAlign: 'center'
+                                    }
+                                ]}
+                            >
+                                Hospital
+                            </Text>
+                        </ThemedButton>
+                        <ThemedButton
+                            style={{margin: 3}}
+                            onPress={()=>{setLocation('Clinic')}}
+                            style={location === 'Clinic' ? {backgroundColor: Colors.primary} : {backgroundColor: theme.buttonColor} }
+                        >
+                            <Text
+                                style={[
+                                    location === 'Clinic' ? {color: theme.title, fontWeight: 500} : {color: theme.text, fontWeight: 400} ,
+                                    {
+                                        fontSize: 14,
+                                        width: 70,
+                                        textAlign: 'center'
+                                    }
+                                ]}
+                            >
+                                Clinic
+                            </Text>
+                        </ThemedButton>
+                    </View>
+
+                    {/*Pressable Icon to send user to Maps app to find pharmacy/hospital/clinic*/}
+                    <Pressable
+                        onPress={openMaps}
+                        style={[
+                            styles.mapPressable,
+                            {
+                                backgroundColor: theme.uiBackground,
+                                borderColor: theme.navBackground,
+                            }]}
+                    >
+                        {location == 'Pharmacy' &&<Image
+                            source={require('../../assets/img/mapsRedirectIcon.png')}
+                            style={{height: '90%', width: '90%'}}
+                        />}
+                        {location == 'Hospital' &&<Image
+                            source={require('../../assets/img/mapRedirectHospitalIcon.png')}
+                            style={{height: '90%', width: '90%'}}
+                        />}
+                        {location == 'Clinic' &&<Image
+                            source={require('../../assets/img/mapRedirectClinicIcon.png')}
+                            style={{height: '90%', width: '90%'}}
+                        />}
+                        <View
+                            style={[
+                                styles.mapView,
+                                {
+                                    backgroundColor:theme.navBackground,
+                                }
+                            ]}
+                        >
+                            <ThemedText
+                                style={styles.heading}
+                            >
+                                Find nearby {location}
+                            </ThemedText>
+                        </View>
+                    </Pressable>
+
+                    <Spacer/>
+
+                    {/* Modal window for editing user medical information */}
+                    <Modal
+                        animationType={'slide'}
+                        transparent={true}
+                        visible={editInfo}
+                        backdropColor={theme.navBackground}
+                        //onRequestClose={() => {setEditInfo(!editInfo)}}
+                    >
+                        <View style={styles.centeredView}>
+                            <ScrollView showsVerticalScrollIndicator={false}>
+                                {/* I wanted to make this as compact as <UserDataLine/> but failed miserably */}
+                                <View style={[styles.modalView, {backgroundColor: theme.navBackground}]}>
+                                    <Text style={{ color: theme.text, textAlign: 'center', fontSize: 20, fontWeight: 500 }}>
+                                        Edit Health information
+                                    </Text>
+                                    <UserEditLine
+                                        title={'Full Name:'}
+                                        placeholderText={'N/A'}
+                                        value={formData.FullName}
+                                        onChangeText={(text) => setFormData((prev) => ({ ...prev, FullName: text }))}
+                                        setKey={setKeyUp}
+                                    />
+                                    <UserEditLine
+                                        title={'Date of Birth:'}
+                                        placeholderText={'N/A'}
+                                        value={formData.DOB}
+                                        onChangeText={(text) => setFormData((prev) => ({ ...prev, DOB: text }))}
+                                        setKey={setKeyUp}
+
+                                    />
+                                    <UserEditLine
+                                        title={'Address:'}
+                                        placeholderText={'N/A'}
+                                        value={formData.Address}
+                                        onChangeText={(text) => setFormData((prev) => ({ ...prev, Address: text }))}
+                                        setKey={setKeyUp}
+                                    />
+                                    <Spacer height={20}/>
+                                    <UserEditLine
+                                        title={'Blood Type:'}
+                                        placeholderText={'N/A'}
+                                        value={formData.BloodType}
+                                        onChangeText={(text) => setFormData((prev) => ({ ...prev, BloodType: text }))}
+                                        setKey={setKeyUp}
+                                    />
+                                    <UserEditLine
+                                        title={'Genetic Conditions:'}
+                                        placeholderText={'N/A'}
+                                        value={formData.GeneticCond}
+                                        onChangeText={(text) => setFormData((prev) => ({ ...prev, GeneticCond: text }))}
+                                        setKey={setKeyUp}
+                                    />
+                                    <UserEditLine
+                                        title={'Chronic Illnesses:'}
+                                        placeholderText={'N/A'}
+                                        value={formData.ChronicIll}
+                                        onChangeText={(text) => setFormData((prev) => ({ ...prev, ChronicIll: text }))}
+                                        setKey={() => {setKeyUp(true)}}
+                                    />
+                                    <UserEditLine
+                                        title={'Medications:'}
+                                        placeholderText={'N/A'}
+                                        value={formData.Medications}
+                                        onChangeText={(text) => setFormData((prev) => ({ ...prev, Medications: text }))}
+                                        setKey={setKeyUp}
+                                    />
+                                    <Spacer height={20}/>
+                                    <UserEditLine
+                                        title={'Last Screening Date:'}
+                                        placeholderText={'N/A'}
+                                        value={formData.RecentScreenDate}
+                                        onChangeText={(text) => setFormData((prev) => ({ ...prev, RecentScreenDate: text }))}
+                                        setKey={setKeyUp}
+                                    />
+                                    <UserEditLine
+                                        title={'Last Screening Info:'}
+                                        placeholderText={'N/A'}
+                                        value={formData.RecentScreenInfo}
+                                        onChangeText={(text) => setFormData((prev) => ({ ...prev, RecentScreenInfo: text }))}
+                                        setKey={setKeyUp}
+                                    />
+                                    {/*error message displayed on inputting the wrong format in DOB and LSD */}
+                                    {errMessage && <Text style={styles.error}>{errMessage}</Text>}
+
+                                    {/*custom set of modal buttons. Way too unnecessary, but I proved to myself I can make them. */}
+                                    <ModalButtons
+                                        styleSub={{backgroundColor: Colors.primary}}
+                                        subText={'Submit'}
+                                        cancText={'Cancel'}
+                                        onSubmit={handlerSubmitPress}
+                                        onCancel={handleCancelPress}
+                                    />
+                                </View>
+                                {/* artificially adding and removing height so user can access every field*/}
+                                {keyUp && <Spacer height={screenHeight/2}/>}
+                            </ScrollView>
+                        </View>
+                    </Modal>
+                </ScrollView>
+            </ThemedView>
+        </TouchableWithoutFeedback>
     )
 }
 
@@ -409,7 +502,7 @@ const styles = StyleSheet.create({
 // Basic CSS
     container: {
         flex: 1,
-        //justifyContent: "center",
+        justifyContent: "center",
         alignItems: 'center',
         width: '100%',
         height: '100%'
@@ -443,7 +536,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         width: '90%',
-        height: 300,
+        height: 340,
         borderRadius: 20,
         borderWidth:5,
     },
@@ -457,7 +550,7 @@ const styles = StyleSheet.create({
 // Modal Related CSS
     centeredView: {
         flex: 1,
-        justifyContent: 'center',
+        //justifyContent: 'center',
     },
     modalView: {
         margin: 10,

@@ -35,8 +35,12 @@ const ThemedSecuredTextInput = ({styleTxt, styleView, styleIcon, iconSize=24, ..
                 keyboardType= "password"
                 autoCorrect={false}
                 autoComplete={'off'}
-                onFocus={()=>{setIsFocused(true)}}
-                onBlur={()=>{setIsFocused(false)}}
+                onFocus={()=>{
+                    setIsFocused(true)
+                }}
+                onBlur={()=>{
+                    setIsFocused(false)
+                }}
                 placeholderTextColor = {theme.text}
                 secureTextEntry={secured}
                 {...props}

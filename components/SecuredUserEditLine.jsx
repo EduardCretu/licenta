@@ -33,12 +33,14 @@ const SecuredUserEditLine = ({styleView, styleTxt, title, placeholderText, ...pr
                 styleView={{
                     marginRight: 20,
                     width: '70%',
-                    height: '80%',
+                    height: '85%',
                     backgroundColor: theme.background
                 }}
                 styleTxt={{
                     backgroundColor: theme.background,
-                    paddingVertical: 0
+                    paddingVertical: 0,
+                    marginVertical: 0,
+                    fontSize: 12
                 }}
                 styleIcon={{
                     paddingLeft: 8,
@@ -63,7 +65,7 @@ const styles = StyleSheet.create({
         marginVertical: 8,
         width: '100%',
         borderRadius: 6,
-        height: 50
+        height: 70
     },
     label: {
         fontSize: 14,
