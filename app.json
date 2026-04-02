@@ -12,17 +12,23 @@
       "image": "./assets/icon_variants/icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#e0dfe8",
-      "dark" : {
-        "backgroundColor" : "#252231"
+      "dark": {
+        "backgroundColor": "#252231"
       }
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.nmlcode.healthdoc"
+      "bundleIdentifier": "com.nmlcode.healthdoc",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.nmlcode.healthdoc",
-      "permissions" : ["USE_EXACT_ALARM","RECEIVE_BOOT_COMPLETED"],
+      "permissions": [
+        "USE_EXACT_ALARM",
+        "RECEIVE_BOOT_COMPLETED"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon_variants/icon.png",
         "backgroundColor": "#313131"
@@ -35,10 +41,12 @@
     "plugins": [
       "expo-router",
       "expo-font",
-      ["expo-navigation-bar",
-      {
-        "visibility": "hidden"
-      }]
+      [
+        "expo-navigation-bar",
+        {
+          "visibility": "hidden"
+        }
+      ]
     ],
     "extra": {
       "router": {},

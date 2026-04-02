@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Modal, ScrollView, Image, Pressable } from 'react-native'
+import { StyleSheet, Text, View, Modal, ScrollView, Image, Pressable, Linking, Platform } from 'react-native'
 // imports related to avatar
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -189,6 +189,20 @@ const Profile = () => {
         return true;
     }
 
+    // little function which redirects user toward maps with a 'pharmacy' query
+    const openMaps = async () => {
+        // console.log(Platform.OS)
+        // check if user is on IOS or android and adjust query accordingly
+        const url = Platform.OS === 'ios' ? `http://maps.apple.com/?q=pharmacy` : `https://www.google.com/maps/search/?api=1&query=pharmacy`;
+        try {
+            await Linking.openURL(url);
+        }
+        catch (err) {
+            console.log(err)
+        }
+    };
+
+
     // the components itself, should probs add a ScrollView
     return (
         <ThemedView safe style={styles.container}>
@@ -246,10 +260,54 @@ const Profile = () => {
 
                 {/* Button to 'handle the editing of user info */}
                 <ThemedButton primary onPress={handleEditPress}>
-                    <Text style={{ color: 'white', textAlign: 'center' }}>
+                    <Text style={{ color: 'white', textAlign: 'center', fontWeight: 500, fontSize: 16 }}>
                         Edit health information?
                     </Text>
                 </ThemedButton>
+
+                <Spacer/>
+
+                {/*maps section of the profile tab*/}
+                <ThemedText
+                    title
+                    style={styles.heading}
+                >
+                    Need to get to a Pharmacy?
+                </ThemedText>
+
+                <Spacer/>
+
+                {/*Pressable Icon to send user to Mapws app to find pharmacy*/}
+                <Pressable
+                    onPress={openMaps}
+                    style={[
+                        styles.mapPressable,
+                        {
+                            backgroundColor: theme.uiBackground,
+                            borderColor: theme.navBackground,
+                        }]}
+                >
+                    <Image
+                        source={require('../../assets/img/mapsRedirectIcon.png')}
+                        style={{height: '90%', width: '90%'}}
+                    />
+                    <View
+                        style={[
+                            styles.mapView,
+                            {
+                                backgroundColor:theme.navBackground,
+                            }
+                        ]}
+                    >
+                        <ThemedText
+                            style={styles.heading}
+                        >
+                            Find Nearby Pharmacies
+                        </ThemedText>
+                    </View>
+                </Pressable>
+
+                <Spacer/>
 
                 {/* Modal window for editing user medical information */}
                 <Modal
@@ -379,6 +437,22 @@ const styles = StyleSheet.create({
         width: '90%',
         padding: 20,
         borderRadius: 6,
+    },
+// Map Pressable CSS
+    mapPressable: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '90%',
+        height: 300,
+        borderRadius: 20,
+        borderWidth:5,
+    },
+    mapView: {
+        width: '100%',
+        height: '20%',
+        borderBottomLeftRadius: 20,
+        borderBottomRightRadius: 20,
+        padding: 5
     },
 // Modal Related CSS
     centeredView: {

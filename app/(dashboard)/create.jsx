@@ -366,7 +366,7 @@ const Create = () => {
 
                     {/*submission button only appears if notificationType is valid value*/}
                     {(notificationType !== null) && <ThemedButton primary onPress={handlePress}>
-                        <Text style={{ color: 'white' }}>
+                        <Text style={{ color: 'white', fontWeight: 500, fontSize: 16 }}>
                             Schedule Notification
                         </Text>
                     </ThemedButton>}

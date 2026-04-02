@@ -1,5 +1,6 @@
-import { StyleSheet, Text, TouchableWithoutFeedback, Keyboard } from 'react-native'
+import { StyleSheet, Text, TouchableWithoutFeedback, Keyboard, View, Pressable } from 'react-native'
 import { Link } from 'expo-router'
+import { Ionicons } from '@expo/vector-icons'
 // Context-hook related imports
 import { useState } from 'react'
 import { useUser } from '../../contexts/UserContext'
@@ -10,6 +11,7 @@ import ThemedText from '../../components/ThemedText'
 import Spacer from '../../components/Spacer'
 import ThemedButton from '../../components/ThemedButton'
 import ThemedTextInput from '../../components/ThemedTextInput'
+import ThemedSecuredTextInput from '../../components/ThemedSecuredTextInput'
 // color related imports
 import { Colors } from '../../constants/colors'
 
@@ -19,6 +21,7 @@ const Login = () => {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState(null)
+    const [secured, setSecured] = useState(true)
     // Consuming context
     const { login } = useUser()
     const { theme } = useTheme()
@@ -50,17 +53,13 @@ const Login = () => {
                     onChangeText={setEmail}
                     value={email}
                 />
-
-                <ThemedTextInput
+                <ThemedSecuredTextInput
                     placeholder='Password'
-                    style={[styles.txtInput,{marginBottom:10}]}
-                    keyboardType= "password"
-                    autoCorrect={false}
-                    autoComplete={'off'}
-                    secureTextEntry
+                    styleView={{marginBottom:10}}
                     onChangeText={setPassword}
                     value={password}
                 />
+
                 <Link
                     style={{borderBottomWidth: 0.8, borderColor: theme.text}}
                     href='/forgotPassword'
@@ -73,6 +72,7 @@ const Login = () => {
 
 
                 <ThemedButton
+                    primary
                     style={{width: '40%'}}
                     onPress={submitHandler}
                 >

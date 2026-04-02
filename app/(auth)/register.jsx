@@ -10,6 +10,7 @@ import ThemedText from '../../components/ThemedText'
 import Spacer from '../../components/Spacer'
 import ThemedButton from '../../components/ThemedButton'
 import ThemedTextInput from '../../components/ThemedTextInput'
+import ThemedSecuredTextInput from '../../components/ThemedSecuredTextInput'
 // color relate imports
 import { Colors } from '../../constants/colors'
 
@@ -52,19 +53,17 @@ const Register = () => {
                     value={email}
                 />
                 {/* vv-- password input field */}
-                <ThemedTextInput
+                <ThemedSecuredTextInput
                     placeholder='Password'
-                    style={styles.txtInput}
-                    keyboardType= "password"
-                    autoCorrect={false}
-                    autoComplete={'off'}
-                    secureTextEntry
+                    styleView={{marginBottom:10}}
                     onChangeText={setPassword}
                     value={password}
                 />
 
+                <Spacer/>
 
                 <ThemedButton
+                    primary
                     style={{width: '40%'}}
                     onPress={submitHandler}
                 >

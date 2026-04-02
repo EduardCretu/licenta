@@ -10,6 +10,7 @@ import ThemedText from "../../components/ThemedText"
 import ThemedView from "../../components/ThemedView"
 import ThemedButton from '../../components/ThemedButton'
 import UserEditLine from '../../components/UserEditLine'
+import SecuredUserEditLine from '../../components/SecuredUserEditLine'
 import ModalButtons from '../../components/ModalButtons'
 import ThemedHr from '../../components/ThemedHr'
 // color related imports
@@ -230,6 +231,7 @@ const Settings = () => {
                             style={{
                                 color: 'white',
                                 textAlign: 'center',
+                                fontSize: 16,
                                 fontWeight: 500
                                 }}
                         >
@@ -249,6 +251,7 @@ const Settings = () => {
                             style={{
                                 color: 'white',
                                 textAlign: 'center',
+                                fontSize: 16,
                                 fontWeight: 500
                                 }}
                         >
@@ -304,7 +307,11 @@ const Settings = () => {
                             <View
                                 style={[
                                     styles.modalView,
-                                    { backgroundColor: theme.navBackground, borderColor: Colors.primary }
+                                    {
+                                        backgroundColor: theme.navBackground,
+                                        borderColor: Colors.primary,
+                                        paddingHorizontal: 15
+                                    }
                                 ]}
                             >
                                 <ThemedText style={[styles.modalText, { fontSize: 25 }]}>
@@ -319,14 +326,12 @@ const Settings = () => {
                                     styleTxt={{width: '25%'}}
                                     styleInput={{width: '70%'}}
                                 />
-                                <UserEditLine
-                                    title={'Password:'}
-                                    placeholderText={'Confirm Password...'}
+
+                                <SecuredUserEditLine
+                                    title="Password:"
+                                    placeholderText="Confirm Password..."
                                     value={emPass}
                                     onChangeText={(text) => setEmPass(text)}
-                                    styleTxt={{width: '25%'}}
-                                    styleInput={{width: '70%'}}
-                                    secureTextEntry
                                 />
 
                                 {/*error && <Text style={styles.error}>{(error?.message?.split(':')[1]) === undefined ? (error?.message?.split(':')[0]) : (error?.message?.split(':')[1])}</Text>*/}
@@ -358,39 +363,34 @@ const Settings = () => {
                             <View
                                 style={[
                                     styles.modalView,
-                                    { backgroundColor: theme.navBackground, borderColor: Colors.primary }
+                                    {
+                                        backgroundColor: theme.navBackground,
+                                        borderColor: Colors.primary,
+                                        paddingHorizontal: 15
+                                    }
                                 ]}
                             >
                                 <ThemedText style={[styles.modalText, { fontSize: 25 }]}>
                                     Change Password
                                 </ThemedText>
 
-                                <UserEditLine
+                                <SecuredUserEditLine
                                     title={'Old Password:'}
-                                    placeholderText={'Password...'}
+                                    placeholderText={"Old Password"}
                                     value={pass}
                                     onChangeText={(text) => setPass(text)}
-                                    styleTxt={{width: '25%'}}
-                                    styleInput={{width: '70%'}}
-                                    secureTextEntry
                                 />
-                                <UserEditLine
-                                    title={'New Password:'}
-                                    placeholderText={'New Password...'}
+                                <SecuredUserEditLine
+                                    title={'New\nPassword:'}
+                                    placeholderText="New Password..."
                                     value={newPass}
                                     onChangeText={(text) => setNewPass(text)}
-                                    styleTxt={{width: '25%'}}
-                                    styleInput={{width: '70%'}}
-                                    secureTextEntry
                                 />
-                                <UserEditLine
+                                <SecuredUserEditLine
                                     title={'Confirm Password:'}
-                                    placeholderText={'Confirm New Password...'}
+                                    placeholderText={"Confirm New Password"}
                                     value={newPassConf}
                                     onChangeText={(text) => setNewPassConf(text)}
-                                    styleTxt={{width: '25%'}}
-                                    styleInput={{width: '70%'}}
-                                    secureTextEntry
                                 />
 
                                 {/*error && <Text style={styles.error}>{(error.message === undefined) ? (error) : (error?.message?.split(':')[1]) === undefined ? (error?.message?.split(':')[0]) : (error?.message?.split(':')[1])}</Text>*/}
