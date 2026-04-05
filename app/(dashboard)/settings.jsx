@@ -54,6 +54,7 @@ const Settings = () => {
         const IMG_KEY = `user_profile_image_${user.$id}`
         // try deleting
         try {
+            // deleteing the user.id related img_key from storage
             await AsyncStorage.removeItem(IMG_KEY);
             await deleteMedInfo(user.$id);
             await deleteAccount();
