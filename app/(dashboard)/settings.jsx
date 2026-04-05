@@ -4,6 +4,7 @@ import { useTheme } from '../../contexts/ThemeContext'
 import { useUser } from '../../contexts/UserContext'
 import { useMedInfo } from '../../contexts/MedInfoContext'
 import { useState, useEffect } from 'react'
+import AsyncStorage from '@react-native-async-storage/async-storage';
 // custom component imports
 import Spacer from "../../components/Spacer"
 import ThemedText from "../../components/ThemedText"
@@ -41,6 +42,8 @@ const Settings = () => {
     useEffect(()=>{
         setEmail(user?.email ?? '')
     },[user?.email])
+
+
     // function that handles account and row deletion
     async function handleDeleteAcc() {
         // if there is no user id return early
@@ -48,8 +51,10 @@ const Settings = () => {
         if (!user?.$id) {
             return
         }
+        const IMG_KEY = `user_profile_image_${user.$id}`
         // try deleting
         try {
+            await AsyncStorage.removeItem(IMG_KEY);
             await deleteMedInfo(user.$id);
             await deleteAccount();
         }

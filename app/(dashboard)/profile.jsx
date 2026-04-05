@@ -21,7 +21,6 @@ import { useMedInfo } from '../../contexts/MedInfoContext'
 import { Colors } from '../../constants/colors'
 
 // async storage consts
-const IMG_KEY = 'user_profile_image'
 const DEFAULT_AVATAR = require('../../assets/img/default-avatar.png')
 
 
@@ -66,6 +65,7 @@ const Profile = () => {
 
     // quick little function to fetch saved image URI from storage
     const loadImage = async () => {
+        const IMG_KEY = `user_profile_image_${user?.$id}`
         const saved = await AsyncStorage.getItem(IMG_KEY);
         if (saved) {
             setImageUri(saved);
@@ -74,6 +74,7 @@ const Profile = () => {
 
     // function to pick user PFP with allowance for editing and set ratio of 1:1
     const pickImage = async () => {
+        const IMG_KEY = `user_profile_image_${user?.$id}`
         const result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ['images'],
           allowsEditing: true,
