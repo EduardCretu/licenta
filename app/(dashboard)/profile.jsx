@@ -306,7 +306,8 @@ const Profile = () => {
                     >
                         <Text
                             style={[
-                                location === 'Pharmacy' ? {color: theme.title, fontWeight: 500} : {color: theme.text, fontWeight: 400} ,
+                                location === 'Pharmacy' ? {color: 'white'
+                                    , fontWeight: 500} : {color: theme.text, fontWeight: 400} ,
                                 {
                                     fontSize: 14,
                                     textAlign: 'center'
@@ -329,7 +330,7 @@ const Profile = () => {
                     >
                         <Text
                             style={[
-                                location === 'Hospital' ? {color: theme.title, fontWeight: 500} : {color: theme.text, fontWeight: 400} ,
+                                location === 'Hospital' ? {color: 'white', fontWeight: 500} : {color: theme.text, fontWeight: 400} ,
                                 {
                                     fontSize: 14,
                                     textAlign: 'center'
@@ -351,7 +352,7 @@ const Profile = () => {
                     >
                         <Text
                             style={[
-                                location === 'Clinic' ? {color: theme.title, fontWeight: 500} : {color: theme.text, fontWeight: 400} ,
+                                location === 'Clinic' ? {color: 'white', fontWeight: 500} : {color: theme.text, fontWeight: 400} ,
                                 {
                                     fontSize: 14,
                                     textAlign: 'center'
