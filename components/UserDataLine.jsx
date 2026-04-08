@@ -10,7 +10,7 @@ const UserDataLine = ({style,title,userData}) => {
             {title}:
           </ThemedText>
           <ThemedText style={{width: '45%'}}>
-            {userData}
+            {(userData === '') ? 'N/A' : userData}
           </ThemedText>
     </View>
   )

@@ -214,14 +214,14 @@ const Profile = () => {
 
     // the components itself, should probs add a ScrollView
     return (
-        <ThemedView safe style={styles.container}>
-            <ScrollView
-                style={{backgroundColor: theme.background, width: '100%', flex: 1 }}
-                // vvv another coconut.png
-                contentContainerStyle={{alignItems: 'center'}}
-                endFillColor={theme.background}
-                showsVerticalScrollIndicator={false}
-            >
+        <ScrollView
+            style={{backgroundColor: theme.background, width: '100%', flex: 1 }}
+            // vvv another coconut.png
+            contentContainerStyle={{alignItems: 'center'}}
+            endFillColor={theme.background}
+            showsVerticalScrollIndicator={false}
+        >
+            <ThemedView safe style={styles.container}>
                 <Spacer />
                 {/* user Header with username & avatar */}
                 <View style={[styles.usernameSection, { flexDirection: 'row' }]}>
@@ -258,7 +258,7 @@ const Profile = () => {
                     <UserDataLine title={'Blood Type'} userData={row?.BloodType ?? 'N/A'} />
                     <UserDataLine title={'Genetic Conditions'} userData={row?.GeneticCond ?? 'N/A'} />
                     <UserDataLine title={'Chronic Illness'} userData={row?.ChronicIll ?? 'N/A'} />
-                    <UserDataLine title={'allergies'} userData={row?.Allergies ?? 'N/A'} />
+                    <UserDataLine title={'Allergies'} userData={row?.Allergies ?? 'N/A'} />
                     <UserDataLine title={'Medication'} userData={row?.Medications ?? 'N/A'} />
                     <Spacer />
                     <UserDataLine title={'Recent Screening Date'} userData={row?.RecentScreenDate?.split('T')[0] ?? 'YYYY-MM-DD'} />
@@ -465,6 +465,13 @@ const Profile = () => {
                                     setKey={setKeyUp}
                                 />
                                 <UserEditLine
+                                    title={'Allergies: '}
+                                    placeholderText={'N/A'}
+                                    value={formData.Allergies}
+                                    onChangeText={(text) => setFormData((prev) => ({ ...prev, Allergies: text }))}
+                                    setKey={setKeyUp}
+                                />
+                                <UserEditLine
                                     title={'Medications:'}
                                     placeholderText={'N/A'}
                                     value={formData.Medications}
@@ -504,8 +511,8 @@ const Profile = () => {
                     </View>
                     </TouchableWithoutFeedback>
                 </Modal>
-            </ScrollView>
-        </ThemedView>
+            </ThemedView>
+        </ScrollView>
     )
 }
 
