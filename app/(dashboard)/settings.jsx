@@ -39,81 +39,68 @@ const Settings = () => {
     // error & announcement state consts
     const [error, setError] = useState('')
     const [announcement, setAnnouncement] = useState(null)
-
+    // caregiver feature relate state consts
     const [isCaregiverEnabled, setIsCaregiverEnabled] = useState(medInfo?.isCaregiver)
+    const [optInWin, setOptInWin] = useState(false)
+    const [optOutWin, setOptOutWin] = useState(false)
+
+    // CAREGIVER FEATURE RELATED
 
     // setting the email value to user's email on first render and every time user's email field changes.
     useEffect(()=>{
         setEmail(user?.email ?? '')
     },[user?.email])
-
+    // .isCaregiver value & setting it to true/false exclusively
     useEffect(() => {
         setIsCaregiverEnabled(!!medInfo?.isCaregiver);
     }, [user?.isCaregiver]);
 
+    // function to handle the Caregiver feature toggle switch.
     async function handleCaregiverToggle(nextValue) {
         if (!user?.$id) return;
-
         // TURNING ON
+        // if the next value to be switched to is true, open Opt In Window and return
         if (nextValue) {
-            Alert.alert(
-                'Become a caregiver?',
-                'This will create your caregiver profile and allow you to manage dependents.',
-                [
-                    {
-                        text: 'Cancel',
-                        style: 'cancel',
-                    },
-                    {
-                        text: 'Confirm',
-                        onPress: async () => {
-                            try {
-
-                                await updateMedInfo(user.$id, { isCaregiver: true });
-                                await ensureDepInfo(user.$id);
-                                await fetchMedInfoById(user.$id);
-
-                                setIsCaregiverEnabled(true);
-                            } catch (err) {
-                                console.log(err.message);
-                                Alert.alert('Error', err.message);
-                            }
-                        },
-                    },
-                ]
-            );
+            setOptInWin(true);
             return;
         }
-
         // TURNING OFF
-        Alert.alert(
-            'Opt out as caregiver?',
-            'This will remove your caregiver profile and all dependent data. This cannot be undone.',
-            [
-                {
-                    text: 'Cancel',
-                    style: 'cancel',
-                },
-                {
-                    text: 'Remove',
-                    style: 'destructive',
-                    onPress: async () => {
-                        try {
-                            await updateMedInfo(user.$id, { isCaregiver: false });
-                            await deleteDepInfo(user.$id);
-                            await fetchMedInfoById(user.$id);
-
-                            setIsCaregiverEnabled(false);
-                        } catch (err) {
-                            console.log(err.message);
-                            Alert.alert('Error', err.message);
-                        }
-                    },
-                },
-            ]
-        );
+        // if the next value to be switched to is false, open Opt Out Window.
+        setOptOutWin(true)
     }
 
+    // Opt in function
+    // Calls ensure function and created Dependents Row
+    async function OptIn() {
+        try {
+            await updateMedInfo(user.$id, { isCaregiver: true });
+            await ensureDepInfo(user.$id);
+            await fetchMedInfoById(user.$id);
+
+            setIsCaregiverEnabled(true);
+            setOptInWin(false)
+        } catch (err) {
+            console.log(err.message);
+            Alert.alert('Error', err.message);
+        }
+    }
+    // Opt in function
+    // Deletes user's Dependents Row
+    async function OptOut() {
+        try {
+            await updateMedInfo(user.$id, { isCaregiver: false });
+            await deleteDepInfo(user.$id);
+            await fetchMedInfoById(user.$id);
+
+            setIsCaregiverEnabled(false);
+            setOptOutWin(false)
+        } catch (err) {
+            console.log(err.message);
+            Alert.alert('Error', err.message);
+        }
+    }
+
+    // USER ACCOUNT RELATED
 
     // function that handles account and row deletion
     async function handleDeleteAcc() {
@@ -128,6 +115,7 @@ const Settings = () => {
             // deleteing the user.id related img_key from storage
             await AsyncStorage.removeItem(IMG_KEY);
             await deleteMedInfo(user.$id);
+            await deleteDepInfo(user.$id);
             await deleteAccount();
         }
         catch (err) {
@@ -564,7 +552,6 @@ const Settings = () => {
                         </View>
                     </Modal>
 
-
                     {/* Modal which announces successful (hopefully) account updates*/}
                     {announcement && <Modal
                         animationType={"slide"}
@@ -585,6 +572,78 @@ const Settings = () => {
                             </Text>
                         </Pressable>
                     </Modal>}
+
+                    {/* Opt In Window: Modal which queries if user wants to Opt In*/}
+                    <Modal
+                        visible={optInWin}
+                        transparent={true}
+                        animationType={'slide'}
+                    >
+                        <View
+                            style={{flex:1, justifyContent: 'center'}}
+                        >
+                            <View
+                                style={[
+                                    styles.modalView,
+                                    { backgroundColor: theme.navBackground, borderColor: Colors.primary, borderWidth: 1 }
+                                ]}
+                            >
+                                <View style={[styles.section, { backgroundColor: theme.navBackground }]}>
+                                    <ThemedText title style={{ fontWeight: 'bold', fontSize: 20, color: Colors.primary }}>
+                                        Register as a Caregiver?
+                                    </ThemedText>
+                                    <ThemedHr width={'75%'} style={{borderWidth: 1.5, marginVertical: 5}}/>
+                                    <ThemedText title style={{fontSize: 16}}>
+                                        This will create your caregiver profile and allow you to manage dependents.
+                                    </ThemedText>
+                                </View>
+                                <ModalButtons
+                                    styleSub={{backgroundColor: Colors.primary}}
+                                    subText={'Opt In'}
+                                    cancText={'Cancel'}
+                                    onSubmit={OptIn}
+                                    onCancel={()=>{setOptInWin(false)}}
+
+                                />
+                            </View>
+                        </View>
+                    </Modal>
+                    {/* Opt Out Window: Modal which queries if user wants to Opt Out*/}
+                    <Modal
+                        visible={optOutWin}
+                        transparent={true}
+                        animationType={'slide'}
+                    >
+                        <View
+                            style={{flex:1, justifyContent: 'center'}}
+                        >
+                            <View
+                                style={[
+                                    styles.modalView,
+                                    { backgroundColor: theme.navBackground, borderColor: Colors.warning, borderWidth: 1 }
+                                ]}
+                            >
+                                <View style={[styles.section, { backgroundColor: theme.navBackground }]}>
+                                    <ThemedText title style={{ fontWeight: 'bold', fontSize: 20, color: Colors.warning }}>
+                                        Opt out as Caregiver?
+                                    </ThemedText>
+                                    <ThemedHr width={'75%'} style={{borderWidth: 1.5, marginVertical: 5}}/>
+                                    <ThemedText title style={{fontSize: 16}}>
+                                        This will remove your caregiver profile and all dependent data.
+                                    </ThemedText>
+                                    <ThemedText title style={{fontSize: 16, fontWeight: 600, fontStyle: 'italic', color: Colors.warning}}>
+                                         This action cannot be undone.
+                                    </ThemedText>
+                                </View>
+                                <ModalButtons
+                                    subText={'Opt Out'}
+                                    cancText={'Cancel'}
+                                    onSubmit={OptOut}
+                                    onCancel={()=>{setOptOutWin(false)}}
+                                />
+                            </View>
+                        </View>
+                    </Modal>
                 </ThemedView>
             </ScrollView>
         </TouchableWithoutFeedback>
@@ -616,6 +675,13 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 16,
     },
+    section: {
+          alignItems: 'center',
+          textAlign: 'center',
+          width: '90%',
+          padding: 20,
+          borderRadius: 6,
+      },
 // Modal related CSS
     centeredView: {
         flex: 1,
@@ -646,7 +712,7 @@ const styles = StyleSheet.create({
         gap: 8,
         marginBottom: 20
     },
-// error
+// error && announcement
     error: {
         color: Colors.warning,
         padding: 10,
@@ -665,5 +731,5 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderRadius: 6,
         width:"70%",
-    }
+    },
 })

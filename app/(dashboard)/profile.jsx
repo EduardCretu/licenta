@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Modal, ScrollView, Image, Pressable, Linking, Platform, TouchableWithoutFeedback, Keyboard, Dimensions } from 'react-native'
+import { StyleSheet, Text, View, Modal, ScrollView, Image, Pressable, Linking, Platform, TouchableWithoutFeedback, Keyboard, Dimensions, Alert } from 'react-native'
 // imports related to avatar
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -21,52 +21,47 @@ import { useMedInfo } from '../../contexts/MedInfoContext'
 import { useDepInfo } from '../../contexts/DependentInfoContext'
 // color imports
 import { Colors } from '../../constants/colors'
-
+// import to immediately call Emergency Contact to skip verification
 import RNImmediatePhoneCall from 'react-native-immediate-phone-call';
-
+// pretty iconsm :)
 import { Ionicons } from '@expo/vector-icons'
 
-// async storage consts
+// Constants
 const DEFAULT_AVATAR = require('../../assets/img/default-avatar.png')
-const DEFAULT_CONTACT = '+40756190779'
-
-
+const DEFAULT_CONTACT = '1120000000'
 
 // Profile tab page handling displaying user info
 const Profile = () => {
     // avatar related consts. Can you tell im adding them last?
     const [imageUri, setImageUri] = useState(null);
     const [imageError, setImageError] = useState(false);
-
+    // consts related to virtual keyboard chicanery
     const [keyUp, setKeyUp] = useState(false)
     const screenHeight = Dimensions.get('window').height;
-
+    // location button query const
     const [location, setLocation] = useState('Pharmacy')
-
-    // few state const. I should have probably used error, setError, but I could not be bothered
+    // few state const for showing & editing user information.
+    // I should have probably used []error, setError], but I could not be bothered
     const [editInfo, setEditInfo] = useState(false);
     const [errMessage, setErrMessage] = useState(null)
-
     const [showBaseInfo, setShowBaseInfo] = useState(true)
     const [showMidInfo, setShowMidInfo] = useState(false)
     const [showEndInfo, setShowEndInfo] = useState(false)
-
+    // Caregiver Feature Related Consts
     const [showDeps, setShowDeps] = useState(false);
     const [depArr, setDepArr] = useState([]);
     const [dependent, setDependent] = useState('');
-
     const [selectedDep, setSelectedDep] = useState(null);
     const [depModalVisible, setDepModalVisible] = useState(false);
-
-    // hooking the contexts
+    const [delDepWin, setDelDepWin] = useState(false)
+    const [missingDep, setMissingDep] = useState(null)
+    // hooking the contexts and consuming them
     const { user } = useUser();
     const { theme } = useTheme();
     const { medInfo, fetchMedInfoById, statelessFetchMedInfoById, updateMedInfo } = useMedInfo();
     const { depInfo, fetchDepInfoById, updateDepInfo } = useDepInfo()
-
-    // formatting medInfo to be readable
+    // formatting medInfo to be readable (deprecated)
     const row = medInfo
-
     // making a data object to store our information
     // every row can take null, so null is the default value
     const [formData, setFormData] = useState({
@@ -119,7 +114,7 @@ const Profile = () => {
         fetchMedInfoById(user.$id);
         loadImage();
     }, [user?.$id, medInfo.isCaregiver]);
-
+    // render for fetching DepRow. Only runs the fetch function if user's .isCaregiver is true.
     useEffect(() => {
         if(!row?.isCaregiver) {
             setShowDeps(false)
@@ -138,7 +133,6 @@ const Profile = () => {
         if (!row?.$id) {
             return;
         };
-
         // we set the local obj data to the DB data
         setFormData({
             FullName: row?.FullName ?? null,
@@ -184,17 +178,28 @@ const Profile = () => {
                 err += 'Emergency number format: (+)1234567890\n';
             }
         }
-        // Launch Err
+        // CaregiverID validation
+        // Only accept strict 20 char length, exactly one (1) ID
+        if (formData.CaregiverID) {
+            const trimmed = formData.CaregiverID.trim();
+            if (trimmed.length !== 20) {
+                err += 'Caregiver ID must be exactly 20 characters\nOnly one Caregiver ID can be active at one time\n';
+            }
+            // overwrite with trimmed value so DB never gets whitespace ' '
+            formData.CaregiverID = trimmed;
+        }
+        // Launch Err into stratosphere
         if (err) {
             setErrMessage(err);
             return;
         }
-
+        // attempt update if everything is in order.
         await updateMedInfo(user.$id, formData);
         setEditInfo(false);
         setErrMessage(false)
         setShowBaseInfo(true)
         setKeyUp(false);
+        // refetch data.
         await fetchMedInfoById(user.$id);
     }
 
@@ -253,6 +258,7 @@ const Profile = () => {
         }
     };
 
+    // function to call emergency contact or DEFAULT
     async function callNumber() {
         try {
             await RNImmediatePhoneCall.immediatePhoneCall(
@@ -265,142 +271,152 @@ const Profile = () => {
         }
     };
 
-    // Care giver related Logic code.
+    // CAREGIVER FEATURE RELATED
 
-
+    // function to add a dependent ID and name to table
     async function addDependent(DepID, currentDependents = []) {
+        // checking if given param is array otherwise using empty array
         const safeDependents = Array.isArray(currentDependents) ? currentDependents : [];
 
         try {
+            // attempt stateless call to return data to DepRow const only.
             const DepRow = await statelessFetchMedInfoById(DepID);
-
+            // filtering errors and returning objects for handler
             if (!DepRow) {
                 return { ok: false, message: 'This user does not exist.' };
             }
-
             if (DepRow.CaregiverID !== user.$id) {
                 return { ok: false, message: 'This user does not have you assigned as a caregiver.' };
             }
-
             if (safeDependents.some(dep => dep.id === DepID)) {
                 return { ok: false, message: 'This dependent is already added.' };
             }
-
+            // creating new Dependent object with given ID and extracted FullName
             const newDep = {
                 id: DepID,
                 name: DepRow.FullName ?? 'Unnamed',
             };
-
+            // appending object to array
             const updated = [...safeDependents, newDep];
-
+            //attempting update to append ID & name references.
             await updateDepInfo(user.$id, {
                 DependentIdArr: updated.map(dep => dep.id),
                 DependentNameArr: updated.map(dep => dep.name),
             });
-
+            // return object with true for handler
             return { ok: true, data: updated };
         } catch (err) {
             return { ok: false, message: err.message || 'Failed to add dependent.' };
         }
     }
-
+    // function to remove Dependent record from user's dep row
     async function removeDependent(DepID, currentDependents = []) {
+        // checking if given param is array otherwise using empty array
         const safeDependents = Array.isArray(currentDependents) ? currentDependents : [];
 
         try {
+            // filtering and returning obj for handler
             if (!safeDependents.some(dep => dep.id === DepID)) {
                 return { ok: false, message: 'Dependent was not found in your list.' };
             }
-
+            // removing the dependent from local array
             const updated = safeDependents.filter(dep => dep.id !== DepID);
-
+            // attempt update with new, filtered array
             await updateDepInfo(user.$id, {
                 DependentIdArr: updated.map(dep => dep.id),
                 DependentNameArr: updated.map(dep => dep.name),
             });
-
+            // return object for handler
             return { ok: true, data: updated };
         } catch (err) {
             return { ok: false, message: err.message || 'Failed to remove dependent.' };
         }
     }
 
+    // handler for addDependent function
     async function handleAddDep(dep) {
+        // setting error
         setErrMessage('');
-
+        // trimming dep for whitespaces so DB gets clean ID reference.
         const cleanDep = dep.trim()
-
+        // calling addDependent
         const result = await addDependent(cleanDep, depArr);
-
+        // clearing textInput
         setDependent('');
+        //if result obj with key 'ok' is false, set error and return early
         if (!result.ok) {
             setErrMessage(result.message);
             return;
         }
-
+        //set updated array
         setDepArr(result.data);
     }
 
+    // handler for removeDependent function
     async function handleDelDep(depId) {
         setErrMessage('');
-
         const result = await removeDependent(depId, depArr);
-
+        //if result obj with key 'ok' is false, set error and return early
         if (!result.ok) {
             setErrMessage(result.message);
             return;
         }
-
+        // se updated array and reset relevant states
         setDepArr(result.data);
         setDepModalVisible(false);
         setSelectedDep(null);
+        setDelDepWin(false);
+        setMissingDep(null);
     }
 
+    // function to fetch IDs & names of dependents
     async function fetchDeps() {
         try {
+            // get data from Dep table
             const data = await fetchDepInfoById(user.$id);
-
+            // ensure ids and names are arrays and assign to consts
             const ids = Array.isArray(data?.DependentIdArr) ? data.DependentIdArr : [];
             const names = Array.isArray(data?.DependentNameArr) ? data.DependentNameArr : [];
-
+            // create object out of arrays
             const combined = ids.map((id, index) => ({
                 id,
                 name: names[index] ?? 'Unnamed',
             }));
-
+            // set depArr to array of combined objects
             setDepArr(combined);
         } catch (err) {
             setErrMessage(err.message || 'Failed to load dependents.');
             setDepArr([]);
         }
     }
-
+    // little consts to handle 'switching tabs'
     const handleShowDeps = () => {
         setErrMessage('')
         setShowDeps(true)
     }
-
     const handleHideDeps = () => {
         setErrMessage('')
         setShowDeps(false)
         setDependent("")
     }
 
+    // function to fetch chosen Dependents data for viewing.
     async function handleOpenDependent(depId) {
         try {
-            setErrMessage('')
+            setErrMessage('');
+            // attempt to fetch from MedInfo with stateless
             const depRow = await statelessFetchMedInfoById(depId);
-
-            if (!depRow) {
-                throw new Error('Dependent not found');
-            }
-
-            console.log(depRow)
-
+            // open viewing window with relevant data
             setSelectedDep(depRow);
             setDepModalVisible(true);
         } catch (err) {
-            console.log(err.message);
+            // if user no longer exists, offer option to remove from row array
+            const missing = depArr.find(dep => dep.id === depId) ?? {
+                id: depId,
+                name: 'this dependent',
+            }
+            setMissingDep(missing);
+            setDelDepWin(true);
         }
     }
 
@@ -416,7 +432,7 @@ const Profile = () => {
         >
             <ThemedView safe style={styles.container}>
                 <Spacer />
-                {/* user Header with username & avatar */}
+                {/* user Header with username & avatar & badge*/}
                 <View style={[styles.usernameSection, { flexDirection: 'row' }]}>
 
                     <Pressable onPress={pickImage}>
@@ -427,14 +443,18 @@ const Profile = () => {
                     </Pressable>
 
                     <View
-                        style={{flexDirection: 'row'}}
+                        style={{flexDirection: 'row', flex: 1}}
                     >
                         <ThemedText
                             title
                             style={[
                                 styles.heading,
-                                {flexWrap:1}
+                                {
+                                    flexShrink: 1,
+                                    minWidth: 0,
+                                }
                             ]}
+                        numberOfLines={2}
                         >
                             {user.email}
                         </ThemedText>
@@ -449,6 +469,8 @@ const Profile = () => {
                                     borderWidth: 2,
                                     borderColor: Colors.primary,
                                     borderRadius: 10,
+                                    textAlign: 'center',
+                                    alignSelf: 'center'
                                 }}
                             >
                                 Caregiver
@@ -460,7 +482,7 @@ const Profile = () => {
 
                 <ThemedHr />
 
-                {/*Beginning of user Info card */}
+                {/*Profile tabs, only visible if .isCaregiver is true */}
                     {row?.isCaregiver &&
                         <View
                             style={{
@@ -524,7 +546,7 @@ const Profile = () => {
                     }
 
                     <Spacer/>
-
+                {/* beginning of render for 'self' page. Renders: user info, map launcher, emergency number, and all relevant modal windows. */}
                 {!showDeps &&
                     <>
                         <View style={[styles.section, { backgroundColor: theme.navBackground }]}>
@@ -540,7 +562,7 @@ const Profile = () => {
                             <UserDataLine title={'Full name'} userData={row?.FullName ?? '-'} />
                             <UserDataLine title={'Date of Birth'} userData={row?.DOB?.split('T')[0] ?? 'YYYY-MM-DD'} />
                             <UserDataLine title={'Address'} userData={row?.Address ?? '-'} />
-                            <UserDataLine title={'Emergency Contact'} userData={row?.EmergNum ?? DEFAULT_CONTACT} />
+                            <UserDataLine title={'Emergency Contact'} userData={row?.EmergNum ?? DEFAULT_CONTACT} placeholderText={DEFAULT_CONTACT}/>
                             <Spacer />
                             <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>Medical Information</ThemedText>
                             <UserDataLine title={'Blood Type'} userData={row?.BloodType ?? '-'} />
@@ -700,6 +722,28 @@ const Profile = () => {
                         </Pressable>
 
                         <Spacer/>
+
+                        {/* Emergency phone number section */}
+                        <ThemedText title style={[styles.heading, {marginVertical: 15}]}>
+                            CALL EMERGENCY CONTACT
+                        </ThemedText>
+
+                        <ThemedButton
+                            primary
+                            style={{minWidth: '60%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}
+                            onPress={callNumber}
+                        >
+                            <Ionicons
+                                size={38}
+                                color={'white'}
+                                name={'call'}
+                            />
+                            <Text title style={{color: 'white', fontWeight: 800, fontSize: 20}}>
+                                 {row?.EmergNum?.trim() || DEFAULT_CONTACT}
+                            </Text>
+                        </ThemedButton>
+
+                        {/* Beginning of 'Self' page modals */}
 
                         {/* Modal window for editing user medical information */}
                         <Modal
@@ -883,32 +927,14 @@ const Profile = () => {
                             </View>
                             </TouchableWithoutFeedback>
                         </Modal>
-
-                        <ThemedText title style={[styles.heading, {marginVertical: 15}]}>
-                            CALL EMERGENCY CONTACT
-                        </ThemedText>
-
-
-                        <ThemedButton
-                            primary
-                            style={{minWidth: '60%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}
-                            onPress={callNumber}
-                        >
-                            <Ionicons
-                                size={38}
-                                color={'white'}
-                                name={'call'}
-                            />
-                            <Text title style={{color: 'white', fontWeight: 800, fontSize: 20}}>
-                                 {row?.EmergNum?.trim() || DEFAULT_CONTACT}
-                            </Text>
-                        </ThemedButton>
                     </>
                 }
 
+                {/* Dependents tab section */}
 
                 {showDeps &&
                     <>
+                        {/* adding dependents by ID */}
                         <ThemedText title style={[styles.heading, {fontSize: 20, marginVertical: 5}]}>
                             Add Patient ID
                         </ThemedText>
@@ -940,11 +966,12 @@ const Profile = () => {
                                 </Text>
                             </ThemedButton>
                         </View>
-
+                        {/* rendering errors related to fetching */}
                         {errMessage && <Text style={styles.error}>{errMessage}</Text>}
 
                         <Spacer/>
 
+                        {/* displaying 'patients' via expandable cards */}
                         <ThemedText title style={[styles.heading, {fontSize: 24, fontWeight: 800, marginBottom: 5}]}>
                             Patients
                         </ThemedText>
@@ -959,6 +986,7 @@ const Profile = () => {
                             </ThemedText>
                         }
 
+                        {/* maps all objects of depArr onto reusable card */}
                         {depArr?.map((dep, index) => (
                             <Pressable
                                 key={dep.id}
@@ -978,6 +1006,9 @@ const Profile = () => {
                             </Pressable>
                         ))}
 
+                        {/* beginning of modal window section of 'Patients' tab */}
+
+                        {/* Dependents Window modal. Displays all of selected dependents fetched information */}
                         <Modal
                             visible={depModalVisible}
                             transparent={true}
@@ -989,7 +1020,7 @@ const Profile = () => {
                                 <View
                                     style={[
                                         styles.modalView,
-                                        { backgroundColor: theme.navBackground, borderColor: Colors.primary }
+                                        { backgroundColor: theme.navBackground }
                                     ]}
                                 >
                                     <View style={[styles.section, { backgroundColor: theme.navBackground }]}>
@@ -1005,7 +1036,7 @@ const Profile = () => {
                                         <UserDataLine title={'Full name'} userData={selectedDep?.FullName ?? '-'} />
                                         <UserDataLine title={'Date of Birth'} userData={selectedDep?.DOB?.split('T')[0] ?? 'YYYY-MM-DD'} />
                                         <UserDataLine title={'Address'} userData={selectedDep?.Address ?? '-'} />
-                                        <UserDataLine title={'Emergency Contact'} userData={selectedDep?.EmergNum ?? DEFAULT_CONTACT} />
+                                        <UserDataLine title={'Emergency Contact'} userData={row?.EmergNum ?? DEFAULT_CONTACT} placeholderText={DEFAULT_CONTACT}/>
                                         <Spacer />
                                         <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>Medical Information</ThemedText>
                                         <UserDataLine title={'Blood Type'} userData={selectedDep?.BloodType ?? '-'} />
@@ -1025,6 +1056,42 @@ const Profile = () => {
                                         cancText={'Exit'}
                                         onSubmit={()=>{handleDelDep(selectedDep?.$id)}}
                                         onCancel={()=>{setDepModalVisible(false)}}
+
+                                    />
+
+                                </View>
+                            </View>
+                        </Modal>
+
+                        {/* modals to delete Dependent record from Dep table when dependent ID is not found in MedInfo table*/}
+                        <Modal
+                            visible={delDepWin}
+                            transparent={true}
+                            animationType={'slide'}
+                        >
+                            <View
+                                style={{flex:1, justifyContent: 'center'}}
+                            >
+                                <View
+                                    style={[
+                                        styles.modalView,
+                                        { backgroundColor: theme.navBackground, borderColor: Colors.warning, borderWidth: 1 }
+                                    ]}
+                                >
+                                    <View style={[styles.section, { backgroundColor: theme.navBackground }]}>
+                                        <ThemedText title style={{ fontWeight: 'bold', fontSize: 20, color: Colors.warning }}>
+                                            Could not find {missingDep?.name}
+                                        </ThemedText>
+                                        <ThemedHr width={'75%'} style={{borderWidth: 1.5, marginVertical: 5}}/>
+                                        <ThemedText title style={{fontSize: 16}}>
+                                            Delete record of dependent: "{missingDep?.name}"?
+                                        </ThemedText>
+                                    </View>
+                                    <ModalButtons
+                                        subText={'Delete'}
+                                        cancText={'Exit'}
+                                        onSubmit={()=>{handleDelDep(missingDep?.id)}}
+                                        onCancel={()=>{setDelDepWin(false); setMissingDep(null)}}
 
                                     />
 

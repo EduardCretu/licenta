@@ -4,13 +4,16 @@ import { createContext, useContext, useState } from 'react'
 import { tablesDB, DB_ID, DEP_TABLE_ID } from '../lib/appwrite'
 import { Query } from 'react-native-appwrite'
 
+// creating the context
 export const DependentInfoContext = createContext()
 
+// exporting the Provider
 export function DependentInfoProvider({ children }) {
+    // state consts to store Dependent data objects
     const [depInfo, setDepInfo] = useState([])
 
 
-
+    // function to create dependent row
     async function createDepInfo(ID) {
         try {
             await tablesDB.createRow({
@@ -26,7 +29,7 @@ export function DependentInfoProvider({ children }) {
             throw Error (err.message)
         }
     }
-
+    // function to update dependent row
     async function updateDepInfo(ID, extern_data) {
         try {
             await tablesDB.updateRow({
@@ -42,42 +45,42 @@ export function DependentInfoProvider({ children }) {
             throw Error (err.message)
         }
     }
-
-    // function to fetch user row by row ID, which row.$id === user.$id
+    // function to fetch dependent row by row ID, which row.$id === user.$id
     async function fetchDepInfoById(ID) {
         try {
-            const response = await tablesDB.listRows({
+            const response = await tablesDB.getRow({
               databaseId: DB_ID,
               tableId: DEP_TABLE_ID,
-              queries: [Query.equal('$id', ID)],
+              rowId: ID,
             });
 
         setDepInfo(response);
         // return reponse promise or null for createRow() function
-        return response.rows[0] ?? null
+        return response
         } catch (err) {
         throw new Error(err.message);
         }
     }
+    // function to ensure that there is always only one (1) row for each user.
     async function ensureDepInfo(ID) {
         try {
-            console.log('before fetch')
+            // fetches the data of the row with row.$id === ID
             const existing = await fetchDepInfoById(ID)
-            console.log('after fetch')
+            // if it exists return
             if (existing) {
-                //console.log('exitst')
                 return existing
             }
-            console.log('creating')
+            // if not, create row Dep row
             const created = await createDepInfo(ID)
-            setDepInfo(created)
 
+            setDepInfo(created)
             return created
         }
         catch (err) {
             throw new Error(err.message)
         }
     }
+    // function to delete Dep Table row. Used only when user deletes their account.
     async function deleteDepInfo(ID) {
         try {
             await tablesDB.deleteRow({
@@ -105,4 +108,5 @@ export function DependentInfoProvider({ children }) {
     )
 }
 
+// custom hook to consume context
 export const useDepInfo = () => useContext(DependentInfoContext)
