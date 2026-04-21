@@ -4,6 +4,7 @@ import { ID } from "react-native-appwrite";
 
 // importing medInfoContext to create a DB row on account registration
 import { useMedInfo } from "./MedInfoContext";
+import { useDepInfo } from "./DependentInfoContext";
 
 // creating the context
 export const UserContext = createContext();
@@ -13,7 +14,8 @@ export function UserProvider({ children }) {
     // state consts && deconstructed use medinfo
     const [user, setUser] = useState(null);
     const [authChecked, setAuthChecked] = useState(false);
-    const { ensureMedInfo } = useMedInfo();
+    const { ensureMedInfo, medInfo } = useMedInfo();
+    const { ensureDepInfo } = useDepInfo();
 
     // function to update user's email
     async function updateUserEmail(newEmail, currentPassword) {
@@ -52,7 +54,6 @@ export function UserProvider({ children }) {
                 password: password,
             });
             const response = await account.get();
-            await ensureMedInfo(response.$id);
             setUser(response);
         } catch (error) {
             throw Error(error.message);

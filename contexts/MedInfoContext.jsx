@@ -32,15 +32,30 @@ export function MedInfoProvider({ children }) {
     // function to fetch user row by row ID, which row.$id === user.$id
     async function fetchMedInfoById(ID) {
         try {
-            const response = await tablesDB.listRows({
+            const response = await tablesDB.getRow({
               databaseId: DB_ID,
               tableId: TABLE_ID,
-              queries: [Query.equal('$id', ID)],
+              rowId: ID,
             });
-
+        //console.log(response)
         setMedInfo(response);
         // return reponse promise or null for createRow() function
-        return response.rows[0] ?? null
+        return response
+        } catch (err) {
+        throw new Error(err.message);
+        }
+    }
+    async function statelessFetchMedInfoById(ID) {
+        try {
+            const response = await tablesDB.getRow({
+              databaseId: DB_ID,
+              tableId: TABLE_ID,
+              rowId: ID,
+            });
+        //console.log(response)
+        //setMedInfo(response);
+        // return reponse promise or null for createRow() function
+        return response
         } catch (err) {
         throw new Error(err.message);
         }
@@ -63,6 +78,7 @@ export function MedInfoProvider({ children }) {
                     Medications: null,
                     //RecentScreenDate: null,
                     RecentScreenInfo: null,
+                    EmergNum: null,
                 }
             })
         }
@@ -110,6 +126,7 @@ export function MedInfoProvider({ children }) {
             medInfo,
             updateMedInfo,
             fetchMedInfoById,
+            statelessFetchMedInfoById,
             createMedInfo,
             deleteMedInfo,
             ensureMedInfo

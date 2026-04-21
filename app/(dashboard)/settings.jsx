@@ -1,8 +1,9 @@
-import { StyleSheet, View, Switch, Text, TouchableWithoutFeedback, Keyboard, ScrollView, Pressable, Modal, KeyboardAvoidingView, Platform } from 'react-native'
+import { StyleSheet, View, Switch, Text, TouchableWithoutFeedback, Keyboard, ScrollView, Pressable, Modal, KeyboardAvoidingView, Platform, Alert } from 'react-native'
 // context-hook imports
 import { useTheme } from '../../contexts/ThemeContext'
 import { useUser } from '../../contexts/UserContext'
 import { useMedInfo } from '../../contexts/MedInfoContext'
+import { useDepInfo } from '../../contexts/DependentInfoContext'
 import { useState, useEffect } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 // custom component imports
@@ -22,7 +23,8 @@ const Settings = () => {
     // context hook related consts
     const { isDark, toggleTheme, theme } = useTheme()
     const { user, logout, deleteAccount, updateUserEmail, updateUserPassword } = useUser()
-    const { deleteMedInfo } = useMedInfo()
+    const { deleteMedInfo, updateMedInfo, medInfo, fetchMedInfoById } = useMedInfo()
+    const { deleteDepInfo, ensureDepInfo } = useDepInfo()
     // state consts related to storing information
     const [email, setEmail] = useState('')
     const [emPass, setEmPass] = useState('')
@@ -38,10 +40,79 @@ const Settings = () => {
     const [error, setError] = useState('')
     const [announcement, setAnnouncement] = useState(null)
 
+    const [isCaregiverEnabled, setIsCaregiverEnabled] = useState(medInfo?.isCaregiver)
+
     // setting the email value to user's email on first render and every time user's email field changes.
     useEffect(()=>{
         setEmail(user?.email ?? '')
     },[user?.email])
+
+    useEffect(() => {
+        setIsCaregiverEnabled(!!medInfo?.isCaregiver);
+    }, [user?.isCaregiver]);
+
+    async function handleCaregiverToggle(nextValue) {
+        if (!user?.$id) return;
+
+        // TURNING ON
+        if (nextValue) {
+            Alert.alert(
+                'Become a caregiver?',
+                'This will create your caregiver profile and allow you to manage dependents.',
+                [
+                    {
+                        text: 'Cancel',
+                        style: 'cancel',
+                    },
+                    {
+                        text: 'Confirm',
+                        onPress: async () => {
+                            try {
+
+                                await updateMedInfo(user.$id, { isCaregiver: true });
+                                await ensureDepInfo(user.$id);
+                                await fetchMedInfoById(user.$id);
+
+                                setIsCaregiverEnabled(true);
+                            } catch (err) {
+                                console.log(err.message);
+                                Alert.alert('Error', err.message);
+                            }
+                        },
+                    },
+                ]
+            );
+            return;
+        }
+
+        // TURNING OFF
+        Alert.alert(
+            'Opt out as caregiver?',
+            'This will remove your caregiver profile and all dependent data. This cannot be undone.',
+            [
+                {
+                    text: 'Cancel',
+                    style: 'cancel',
+                },
+                {
+                    text: 'Remove',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            await updateMedInfo(user.$id, { isCaregiver: false });
+                            await deleteDepInfo(user.$id);
+                            await fetchMedInfoById(user.$id);
+
+                            setIsCaregiverEnabled(false);
+                        } catch (err) {
+                            console.log(err.message);
+                            Alert.alert('Error', err.message);
+                        }
+                    },
+                },
+            ]
+        );
+    }
 
 
     // function that handles account and row deletion
@@ -225,6 +296,18 @@ const Settings = () => {
                     <ThemedHr style={{marginVertical: 5}}/>
 
                     {/* button to open modal responsible for email update*/}
+                    <View style={[styles.container, {backgroundColor: theme.uiBackground}]}>
+                        <ThemedText style={[styles.label, {paddingLeft: 10, fontWeight: 600}]}>
+                            Account Registered As Caregiver
+                        </ThemedText>
+
+                        <Switch
+                            value={isCaregiverEnabled}
+                            onValueChange={handleCaregiverToggle}
+                            thumbColor={isDark ? '#fff' : '#fff'}
+                            trackColor={{ false: '#767577', true: Colors.primary }}
+                        />
+                    </View>
                     <ThemedButton
                         primary
                         style={{marginVertical: 8, width: '95%', height: '50'}}

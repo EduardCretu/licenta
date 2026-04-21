@@ -27,7 +27,8 @@
       "package": "com.nmlcode.healthdoc",
       "permissions": [
         "USE_EXACT_ALARM",
-        "RECEIVE_BOOT_COMPLETED"
+        "RECEIVE_BOOT_COMPLETED",
+        "CALL_PHONE"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon_variants/icon.png",

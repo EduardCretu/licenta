@@ -5,6 +5,7 @@ import { StatusBar } from "expo-status-bar";
 import { UserProvider } from "../contexts/UserContext";
 import { ThemeProvider } from "../contexts/ThemeContext";
 import { MedInfoProvider } from "../contexts/MedInfoContext";
+import { DependentInfoProvider } from "../contexts/DependentInfoContext";
 // notification related imports
 import { initNotifications }  from "../lib/notifications"
 // the little tray of buttons at the bottom of the screen
@@ -16,17 +17,19 @@ export default function RootLayout() {
     const visibility = NavigationBar.useVisibility();
     // on first render initialise the notifications
     useEffect(() => {
-    initNotifications();
+        initNotifications();
     }, [])
     // return the wrap and render the children (including those in folders. Looking at you <Stack/>)
     return (
-        <MedInfoProvider>
-            <UserProvider>
-                <ThemeProvider>
-                    <StatusBar hidden />
-                    <Slot />
-                </ThemeProvider>
-            </UserProvider>
-        </MedInfoProvider>
+        <DependentInfoProvider>
+            <MedInfoProvider>
+                <UserProvider>
+                    <ThemeProvider>
+                        <StatusBar hidden />
+                        <Slot />
+                    </ThemeProvider>
+                </UserProvider>
+            </MedInfoProvider>
+        </DependentInfoProvider>
     );
 }

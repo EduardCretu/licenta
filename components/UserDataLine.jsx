@@ -6,11 +6,11 @@ import ThemedText from './ThemedText'
 const UserDataLine = ({style,title,userData}) => {
   return (
     <View style={[styles.section,{style},style]}>
-          <ThemedText style={{width: '50%'}}>
+          <ThemedText style={{width: '50%', fontSize: 16}}>
             {title}:
           </ThemedText>
-          <ThemedText style={{width: '45%'}}>
-            {(userData === '') ? 'N/A' : userData}
+          <ThemedText style={{width: '45%', fontSize: 16}}>
+            {(userData === '') ? '-' : userData}
           </ThemedText>
     </View>
   )

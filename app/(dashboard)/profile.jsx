@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // custom component imports
 import Spacer from '../../components/Spacer'
 import ThemedText from '../../components/ThemedText'
+import ThemedTextInput from '../../components/ThemedTextInput'
 import ThemedView from '../../components/ThemedView'
 import ThemedButton from '../../components/ThemedButton'
 import ThemedHr from '../../components/ThemedHr'
@@ -17,11 +18,17 @@ import { useState, useEffect } from 'react'
 import { useUser } from '../../contexts/UserContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useMedInfo } from '../../contexts/MedInfoContext'
+import { useDepInfo } from '../../contexts/DependentInfoContext'
 // color imports
 import { Colors } from '../../constants/colors'
 
+import RNImmediatePhoneCall from 'react-native-immediate-phone-call';
+
+import { Ionicons } from '@expo/vector-icons'
+
 // async storage consts
 const DEFAULT_AVATAR = require('../../assets/img/default-avatar.png')
+const DEFAULT_CONTACT = '+40756190779'
 
 
 
@@ -40,13 +47,25 @@ const Profile = () => {
     const [editInfo, setEditInfo] = useState(false);
     const [errMessage, setErrMessage] = useState(null)
 
+    const [showBaseInfo, setShowBaseInfo] = useState(true)
+    const [showMidInfo, setShowMidInfo] = useState(false)
+    const [showEndInfo, setShowEndInfo] = useState(false)
+
+    const [showDeps, setShowDeps] = useState(false);
+    const [depArr, setDepArr] = useState([]);
+    const [dependent, setDependent] = useState('');
+
+    const [selectedDep, setSelectedDep] = useState(null);
+    const [depModalVisible, setDepModalVisible] = useState(false);
+
     // hooking the contexts
     const { user } = useUser();
     const { theme } = useTheme();
-    const { medInfo, fetchMedInfoById, updateMedInfo } = useMedInfo();
+    const { medInfo, fetchMedInfoById, statelessFetchMedInfoById, updateMedInfo } = useMedInfo();
+    const { depInfo, fetchDepInfoById, updateDepInfo } = useDepInfo()
 
     // formatting medInfo to be readable
-    const row = medInfo?.rows?.[0]
+    const row = medInfo
 
     // making a data object to store our information
     // every row can take null, so null is the default value
@@ -61,6 +80,7 @@ const Profile = () => {
         Medications: null,
         RecentScreenDate: null,
         RecentScreenInfo: null,
+        EmergNum: null,
     });
 
     // quick little function to fetch saved image URI from storage
@@ -98,7 +118,19 @@ const Profile = () => {
         // fetching the data
         fetchMedInfoById(user.$id);
         loadImage();
-    }, []);
+    }, [user?.$id, medInfo.isCaregiver]);
+
+    useEffect(() => {
+        if(!row?.isCaregiver) {
+            setShowDeps(false)
+            setDepArr([]);
+            setDepModalVisible(false);
+            setSelectedDep(null);
+            setDependent('');
+            return
+        }
+        fetchDeps()
+    }, [user?.$id, medInfo.isCaregiver]);
 
     // another useEffect function
     useEffect(() => {
@@ -112,6 +144,7 @@ const Profile = () => {
             FullName: row?.FullName ?? null,
             DOB: row?.DOB?.split('T')[0] ?? null,
             Address: row?.Address ?? null,
+            EmergNum: row?.EmergNum ?? null,
             BloodType: row?.BloodType ?? null,
             GeneticCond: row?.GeneticCond ?? null,
             ChronicIll: row?.ChronicIll ?? null,
@@ -119,6 +152,7 @@ const Profile = () => {
             Medications: row?.Medications ?? null,
             RecentScreenDate: row?.RecentScreenDate?.split('T')[0] ?? null,
             RecentScreenInfo: row?.RecentScreenInfo ?? null,
+            CaregiverID: row?.CaregiverID ?? null
         });
         // repeat render when row.$id changes, ergo when user Changes.
     }, [row?.$id]);
@@ -132,31 +166,36 @@ const Profile = () => {
     // function to handle the submission of data
     // almost all columns are 'text' type columns, so there is no need to thoroughly check
     async function handlerSubmitPress() {
-        // reset the error bool/message
-        setErrMessage(null)
-        // check DOB and LSD for non-null, invalid dates
-        if (formData.DOB || formData.RecentScreenDate) {
-            let err = '';
-            if (formData.DOB && !isValidYYYYMMDD(formData.DOB)) {
-                err += 'Date must be in YYYY-MM-DD format\n';
-            }
-            if (formData.RecentScreenDate && !isValidYYYYMMDD(formData.RecentScreenDate)) {
-                err += 'Last Screening Date must be in YYYY-MM-DD format\n';
-            }
-            // return early ONLY if there are errors
-            if (err) {
-                setErrMessage(err);
-                return;
+        setErrMessage(null);
+        let err = '';
+
+        // Date validation
+        if (formData.DOB && !isValidYYYYMMDD(formData.DOB)) {
+            err += 'Date must be in YYYY-MM-DD format\n';
+        }
+        if (formData.RecentScreenDate && !isValidYYYYMMDD(formData.RecentScreenDate)) {
+            err += 'Last Screening Date must be in YYYY-MM-DD format\n';
+        }
+        // Emergency number validation
+        if (formData.EmergNum) {
+            const phoneRegex = /^[0-9+]+$/;
+
+            if (!phoneRegex.test(formData.EmergNum.trim())) {
+                err += 'Emergency number format: (+)1234567890\n';
             }
         }
-        // call update function with params ID and data.
-        await updateMedInfo(user.$id, formData)
-        // close the edit window
-        setEditInfo(false)
-        setKeyUp(false)
-        // refetch row for updated content
-        await fetchMedInfoById(user.$id)
+        // Launch Err
+        if (err) {
+            setErrMessage(err);
+            return;
+        }
 
+        await updateMedInfo(user.$id, formData);
+        setEditInfo(false);
+        setErrMessage(false)
+        setShowBaseInfo(true)
+        setKeyUp(false);
+        await fetchMedInfoById(user.$id);
     }
 
     // function to exit and cancel changes
@@ -165,10 +204,12 @@ const Profile = () => {
         setEditInfo(false)
         setErrMessage(false)
         setKeyUp(false)
+        setShowBaseInfo(true)
         setFormData({
             FullName: row?.FullName ?? null,
             DOB: row?.DOB?.split('T')[0] ?? null,
             Address: row?.Address ?? null,
+            EmergNum: row?.EmergNum ?? null,
             BloodType: row?.BloodType ?? null,
             GeneticCond: row?.GeneticCond ?? null,
             ChronicIll: row?.ChronicIll ?? null,
@@ -176,6 +217,7 @@ const Profile = () => {
             Medications: row?.Medications ?? null,
             RecentScreenDate: row?.RecentScreenDate?.split('T')[0] ?? null,
             RecentScreenInfo: row?.RecentScreenInfo ?? null,
+            CaregiverID: row?.CaregiverID ?? null,
         });
     }
 
@@ -211,6 +253,157 @@ const Profile = () => {
         }
     };
 
+    async function callNumber() {
+        try {
+            await RNImmediatePhoneCall.immediatePhoneCall(
+                row?.EmergNum?.trim() || DEFAULT_CONTACT
+            );
+            console.log('Call commencing')
+        }
+        catch (err) {
+            console.log('call failed', err)
+        }
+    };
+
+    // Care giver related Logic code.
+
+
+    async function addDependent(DepID, currentDependents = []) {
+        const safeDependents = Array.isArray(currentDependents) ? currentDependents : [];
+
+        try {
+            const DepRow = await statelessFetchMedInfoById(DepID);
+
+            if (!DepRow) {
+                return { ok: false, message: 'This user does not exist.' };
+            }
+
+            if (DepRow.CaregiverID !== user.$id) {
+                return { ok: false, message: 'This user does not have you assigned as a caregiver.' };
+            }
+
+            if (safeDependents.some(dep => dep.id === DepID)) {
+                return { ok: false, message: 'This dependent is already added.' };
+            }
+
+            const newDep = {
+                id: DepID,
+                name: DepRow.FullName ?? 'Unnamed',
+            };
+
+            const updated = [...safeDependents, newDep];
+
+            await updateDepInfo(user.$id, {
+                DependentIdArr: updated.map(dep => dep.id),
+                DependentNameArr: updated.map(dep => dep.name),
+            });
+
+            return { ok: true, data: updated };
+        } catch (err) {
+            return { ok: false, message: err.message || 'Failed to add dependent.' };
+        }
+    }
+
+    async function removeDependent(DepID, currentDependents = []) {
+        const safeDependents = Array.isArray(currentDependents) ? currentDependents : [];
+
+        try {
+            if (!safeDependents.some(dep => dep.id === DepID)) {
+                return { ok: false, message: 'Dependent was not found in your list.' };
+            }
+
+            const updated = safeDependents.filter(dep => dep.id !== DepID);
+
+            await updateDepInfo(user.$id, {
+                DependentIdArr: updated.map(dep => dep.id),
+                DependentNameArr: updated.map(dep => dep.name),
+            });
+
+            return { ok: true, data: updated };
+        } catch (err) {
+            return { ok: false, message: err.message || 'Failed to remove dependent.' };
+        }
+    }
+
+    async function handleAddDep(dep) {
+        setErrMessage('');
+
+        const cleanDep = dep.trim()
+
+        const result = await addDependent(cleanDep, depArr);
+
+        setDependent('');
+        if (!result.ok) {
+            setErrMessage(result.message);
+            return;
+        }
+
+        setDepArr(result.data);
+    }
+
+    async function handleDelDep(depId) {
+        setErrMessage('');
+
+        const result = await removeDependent(depId, depArr);
+
+        if (!result.ok) {
+            setErrMessage(result.message);
+            return;
+        }
+
+        setDepArr(result.data);
+        setDepModalVisible(false);
+        setSelectedDep(null);
+    }
+
+    async function fetchDeps() {
+        try {
+            const data = await fetchDepInfoById(user.$id);
+
+            const ids = Array.isArray(data?.DependentIdArr) ? data.DependentIdArr : [];
+            const names = Array.isArray(data?.DependentNameArr) ? data.DependentNameArr : [];
+
+            const combined = ids.map((id, index) => ({
+                id,
+                name: names[index] ?? 'Unnamed',
+            }));
+
+            setDepArr(combined);
+        } catch (err) {
+            setErrMessage(err.message || 'Failed to load dependents.');
+            setDepArr([]);
+        }
+    }
+
+    const handleShowDeps = () => {
+        setErrMessage('')
+        setShowDeps(true)
+    }
+
+    const handleHideDeps = () => {
+        setErrMessage('')
+        setShowDeps(false)
+        setDependent("")
+    }
+
+    async function handleOpenDependent(depId) {
+        try {
+            setErrMessage('')
+            const depRow = await statelessFetchMedInfoById(depId);
+
+            if (!depRow) {
+                throw new Error('Dependent not found');
+            }
+
+            console.log(depRow)
+
+            setSelectedDep(depRow);
+            setDepModalVisible(true);
+        } catch (err) {
+            console.log(err.message);
+        }
+    }
+
 
     // the components itself, should probs add a ScrollView
     return (
@@ -226,291 +419,621 @@ const Profile = () => {
                 {/* user Header with username & avatar */}
                 <View style={[styles.usernameSection, { flexDirection: 'row' }]}>
 
-                <Pressable onPress={pickImage}>
-                    <Image source={
-                        (imageUri && !imageError) ? { uri: imageUri } : DEFAULT_AVATAR }
-                        style={styles.avatar}
-                    />
-                </Pressable>
+                    <Pressable onPress={pickImage}>
+                        <Image source={
+                            (imageUri && !imageError) ? { uri: imageUri } : DEFAULT_AVATAR }
+                            style={styles.avatar}
+                        />
+                    </Pressable>
 
-                    <ThemedText title={true} style={styles.heading}>
-                        {user.email}
-                    </ThemedText>
+                    <View
+                        style={{flexDirection: 'row'}}
+                    >
+                        <ThemedText
+                            title
+                            style={[
+                                styles.heading,
+                                {flexWrap:1}
+                            ]}
+                        >
+                            {user.email}
+                        </ThemedText>
+                        {row?.isCaregiver &&
+                            <Text
+                                style={{
+                                    marginLeft: 10,
+                                    color: Colors.primary,
+                                    fontWeight: 800,
+                                    padding: 4,
+                                    backgroundColor: 'rgba(10, 114, 41, 0.15)',
+                                    borderWidth: 2,
+                                    borderColor: Colors.primary,
+                                    borderRadius: 10,
+                                }}
+                            >
+                                Caregiver
+                            </Text>
+                        }
+                    </View>
+
                 </View>
 
                 <ThemedHr />
 
-                <Spacer />
-
                 {/*Beginning of user Info card */}
-                <View style={[styles.section, { backgroundColor: theme.navBackground }]}>
-                    <ThemedText title style={{ fontWeight: 'bold', fontSize: 20 }}>
-                        User Information
-                    </ThemedText>
-                    <Spacer height={20} />
+                    {row?.isCaregiver &&
+                        <View
+                            style={{
+                                backgroundColor: theme.navBackground,
+                                flexDirection: 'row',
+                                justifyContent:'center',
+                                width: '90%',
+                                marginBottom: 10
 
-                    {/* Well well well.. Anyway. Basic UserData Lines to display the medical information without a trillion lines of code in one page. Ergo, 'modularity' */}
-                    {/*vvvvvvvvv To be automated and tied to user-info db/json */}
-                    <UserDataLine title={'Full name'} userData={row?.FullName ?? 'N/A'} />
-                    <UserDataLine title={'Date of Birth'} userData={row?.DOB?.split('T')[0] ?? 'YYYY-MM-DD'} />
-                    <UserDataLine title={'Address'} userData={row?.Address ?? 'N/A'} />
-                    <Spacer />
-                    <UserDataLine title={'Blood Type'} userData={row?.BloodType ?? 'N/A'} />
-                    <UserDataLine title={'Genetic Conditions'} userData={row?.GeneticCond ?? 'N/A'} />
-                    <UserDataLine title={'Chronic Illness'} userData={row?.ChronicIll ?? 'N/A'} />
-                    <UserDataLine title={'Allergies'} userData={row?.Allergies ?? 'N/A'} />
-                    <UserDataLine title={'Medication'} userData={row?.Medications ?? 'N/A'} />
-                    <Spacer />
-                    <UserDataLine title={'Recent Screening Date'} userData={row?.RecentScreenDate?.split('T')[0] ?? 'YYYY-MM-DD'} />
-                    <UserDataLine title={'Recent Screening Info'} userData={row?.RecentScreenInfo ?? 'N/A'} />
-                </View>
-
-                <Spacer />
-
-                {/* Button to 'handle the editing of user info */}
-                <ThemedButton primary onPress={handleEditPress}>
-                    <Text style={{ color: 'white', textAlign: 'center', fontWeight: 500, fontSize: 16 }}>
-                        Edit health information?
-                    </Text>
-                </ThemedButton>
-
-                <Spacer/>
-
-                {/*maps section of the profile tab*/}
-                <ThemedText
-                    title
-                    style={styles.heading}
-                >
-                    Need to find assistance?
-                </ThemedText>
-                <View
-                    style={{
-                        flexDirection:'row',
-                        width: '90%',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        backgroundColor: theme.navBackground,
-                        padding: 10,
-                        borderRadius: 10,
-                        margin: 10
-                        }}
-                >
-                    <ThemedButton
-                        onPress={()=>{setLocation('Pharmacy')}}
-                        style={[
-                            location === 'Pharmacy' ? {backgroundColor: Colors.primary} : {backgroundColor: theme.buttonColor},
-                            {
-                                width:'30%',
-                                paddingHorizontal: 0
-                            }
-                        ]}
-                    >
-                        <Text
-                            style={[
-                                location === 'Pharmacy' ? {color: 'white'
-                                    , fontWeight: 500} : {color: theme.text, fontWeight: 400} ,
-                                {
-                                    fontSize: 14,
-                                    textAlign: 'center'
-                                }
-                            ]}
+                            }}
                         >
-                            Pharmacy
-                        </Text>
-                    </ThemedButton>
+                            <ThemedButton
+                                style={[
+                                    !showDeps ? {backgroundColor: Colors.primary} : {backgroundColor: theme.buttonColor},
+                                    {
+                                        width:'50%',
+                                        borderRadius: 0,
+                                        borderBottomLeftRadius: 6,
+                                        paddingVertical: 10,
+                                    }
+                                    ]}
+                                onPress={handleHideDeps}
+                            >
+                                <Text
+                                    style={[
+                                        !showDeps ? {color: 'white', fontWeight: 500} : {color: theme.text, fontWeight: 400},
+                                        {
+                                            textAlign: 'center',
+                                            fontSize: 16
+                                        }
+                                    ]}
+                                >
+                                    See Self
+                                </Text>
+                            </ThemedButton>
+                            <ThemedButton
+                                style={[
+                                      showDeps ? {backgroundColor: Colors.primary} : {backgroundColor: theme.buttonColor},
+                                      {
+                                          width: '50%',
+                                          borderRadius: 0,
+                                          borderBottomRightRadius: 6,
+                                          paddingVertical: 10,
+                                      }
+                                      ]}
+                                onPress={handleShowDeps}
+                            >
+                                <Text
+                                    style={[
+                                        showDeps ? {color: 'white', fontWeight: 500} : {color: theme.text, fontWeight: 400},
+                                        {
+                                            textAlign: 'center',
+                                            fontSize: 16
+                                        }
+                                    ]}
+                                >
+                                    See Patients
+                                </Text>
+                            </ThemedButton>
+                        </View>
+                    }
 
-                    <ThemedButton
-                        onPress={()=>{setLocation('Hospital')}}
-                        style={[
-                            location === 'Hospital' ? {backgroundColor: Colors.primary} : {backgroundColor: theme.buttonColor},
-                            {
-                                width:'30%',
-                                paddingHorizontal: 0
-                            }
-                        ]}
-                    >
-                        <Text
-                            style={[
-                                location === 'Hospital' ? {color: 'white', fontWeight: 500} : {color: theme.text, fontWeight: 400} ,
-                                {
-                                    fontSize: 14,
-                                    textAlign: 'center'
-                                }
-                            ]}
-                        >
-                            Hospital
-                        </Text>
-                    </ThemedButton>
-                    <ThemedButton
-                        onPress={()=>{setLocation('Clinic')}}
-                        style={[
-                            location === 'Clinic' ? {backgroundColor: Colors.primary} : {backgroundColor: theme.buttonColor},
-                            {
-                                width:'30%',
-                                paddingHorizontal: 0
-                            }
-                        ]}
-                    >
-                        <Text
-                            style={[
-                                location === 'Clinic' ? {color: 'white', fontWeight: 500} : {color: theme.text, fontWeight: 400} ,
-                                {
-                                    fontSize: 14,
-                                    textAlign: 'center'
-                                }
-                            ]}
-                        >
-                            Clinic
-                        </Text>
-                    </ThemedButton>
-                </View>
+                    <Spacer/>
 
-                {/*Pressable Icon to send user to Maps app to find pharmacy/hospital/clinic*/}
-                <Pressable
-                    onPress={openMaps}
-                    style={[
-                        styles.mapPressable,
-                        {
-                            backgroundColor: theme.uiBackground,
-                            borderColor: theme.navBackground,
-                        }]}
-                >
-                    {location == 'Pharmacy' &&<Image
-                        source={require('../../assets/img/mapsRedirectIcon.png')}
-                        style={{height: '90%', width: '90%'}}
-                    />}
-                    {location == 'Hospital' &&<Image
-                        source={require('../../assets/img/mapRedirectHospitalIcon.png')}
-                        style={{height: '90%', width: '90%'}}
-                    />}
-                    {location == 'Clinic' &&<Image
-                        source={require('../../assets/img/mapRedirectClinicIcon.png')}
-                        style={{height: '90%', width: '90%'}}
-                    />}
-                    <View
-                        style={[
-                            styles.mapView,
-                            {
-                                backgroundColor:theme.navBackground,
-                            }
-                        ]}
-                    >
+                {!showDeps &&
+                    <>
+                        <View style={[styles.section, { backgroundColor: theme.navBackground }]}>
+                            <ThemedText title style={{ fontWeight: 'bold', fontSize: 20 }}>
+                                User Information
+                            </ThemedText>
+                            <ThemedHr width={'75%'} style={{borderWidth: 1.5, marginVertical: 5}}/>
+                            <Spacer height={20} />
+
+                            {/* Well well well.. Anyway. Basic UserData Lines to display the medical information without a trillion lines of code in one page. Ergo, 'modularity' */}
+                            {/*vvvvvvvvv To be automated and tied to user-info db/json */}
+                            <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>Personal Information</ThemedText>
+                            <UserDataLine title={'Full name'} userData={row?.FullName ?? '-'} />
+                            <UserDataLine title={'Date of Birth'} userData={row?.DOB?.split('T')[0] ?? 'YYYY-MM-DD'} />
+                            <UserDataLine title={'Address'} userData={row?.Address ?? '-'} />
+                            <UserDataLine title={'Emergency Contact'} userData={row?.EmergNum ?? DEFAULT_CONTACT} />
+                            <Spacer />
+                            <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>Medical Information</ThemedText>
+                            <UserDataLine title={'Blood Type'} userData={row?.BloodType ?? '-'} />
+                            <UserDataLine title={'Genetic Conditions'} userData={row?.GeneticCond ?? '-'} />
+                            <UserDataLine title={'Chronic Illness'} userData={row?.ChronicIll ?? '-'} />
+                            <UserDataLine title={'Allergies'} userData={row?.Allergies ?? '-'} />
+                            <UserDataLine title={'Medication'} userData={row?.Medications ?? '-'} />
+                            <Spacer />
+                            <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>Medical Records</ThemedText>
+                            <UserDataLine title={'Recent Screening Date'} userData={row?.RecentScreenDate?.split('T')[0] ?? 'YYYY-MM-DD'} />
+                            <UserDataLine title={'Recent Screening Info'} userData={row?.RecentScreenInfo ?? '-'} />
+                            <UserDataLine title={'Caregiver ID'} userData={row?.CaregiverID ?? '-'} />
+                        </View>
+
+
+                        <Spacer />
+
+                        {/* Button to 'handle the editing of user info */}
+                        <ThemedButton primary onPress={handleEditPress}>
+                            <Text style={{ color: 'white', textAlign: 'center', fontWeight: 500, fontSize: 16 }}>
+                                Edit health information?
+                            </Text>
+                        </ThemedButton>
+
+                        <Spacer/>
+
+                        {/*maps section of the profile tab*/}
                         <ThemedText
+                            title
                             style={styles.heading}
                         >
-                            Find nearby {location}
+                            Need to find assistance?
                         </ThemedText>
-                    </View>
-                </Pressable>
-
-                <Spacer/>
-
-                {/* Modal window for editing user medical information */}
-                <Modal
-                    animationType={'slide'}
-                    transparent={true}
-                    visible={editInfo}
-                    backdropColor={theme.navBackground}
-                    //onRequestClose={() => {setEditInfo(!editInfo)}}
-                >
-                    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                    <View style={styles.centeredView}>
-                        <ScrollView showsVerticalScrollIndicator={false}>
-                            {/* I wanted to make this as compact as <UserDataLine/> but failed miserably */}
-                            <View style={[styles.modalView, {backgroundColor: theme.navBackground}]}>
-                                <Text style={{ color: theme.text, textAlign: 'center', fontSize: 20, fontWeight: 500 }}>
-                                    Edit Health information
+                        <View
+                            style={{
+                                flexDirection:'row',
+                                width: '90%',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                backgroundColor: theme.navBackground,
+                                padding: 10,
+                                borderRadius: 10,
+                                margin: 10
+                                }}
+                        >
+                            <ThemedButton
+                                onPress={()=>{setLocation('Pharmacy')}}
+                                style={[
+                                    location === 'Pharmacy' ? {backgroundColor: Colors.primary} : {backgroundColor: theme.buttonColor},
+                                    {
+                                        borderTopRightRadius: 0,
+                                        borderBottomRightRadius: 0,
+                                        width:'33%',
+                                        paddingHorizontal: 0
+                                    }
+                                ]}
+                            >
+                                <Text
+                                    style={[
+                                        location === 'Pharmacy' ? {color: 'white'
+                                            , fontWeight: 500} : {color: theme.text, fontWeight: 400} ,
+                                        {
+                                            fontSize: 16,
+                                            textAlign: 'center'
+                                        }
+                                    ]}
+                                >
+                                    Pharmacy
                                 </Text>
-                                <UserEditLine
-                                    title={'Full Name:'}
-                                    placeholderText={'N/A'}
-                                    value={formData.FullName}
-                                    onChangeText={(text) => setFormData((prev) => ({ ...prev, FullName: text }))}
-                                    setKey={setKeyUp}
-                                />
-                                <UserEditLine
-                                    title={'Date of Birth:'}
-                                    placeholderText={'N/A'}
-                                    value={formData.DOB}
-                                    onChangeText={(text) => setFormData((prev) => ({ ...prev, DOB: text }))}
-                                    setKey={setKeyUp}
-                                />
-                                <UserEditLine
-                                    title={'Address:'}
-                                    placeholderText={'N/A'}
-                                    value={formData.Address}
-                                    onChangeText={(text) => setFormData((prev) => ({ ...prev, Address: text }))}
-                                    setKey={setKeyUp}
-                                />
-                                <Spacer height={20}/>
-                                <UserEditLine
-                                    title={'Blood Type:'}
-                                    placeholderText={'N/A'}
-                                    value={formData.BloodType}
-                                    onChangeText={(text) => setFormData((prev) => ({ ...prev, BloodType: text }))}
-                                    setKey={setKeyUp}
-                                />
-                                <UserEditLine
-                                    title={'Genetic Conditions:'}
-                                    placeholderText={'N/A'}
-                                    value={formData.GeneticCond}
-                                    onChangeText={(text) => setFormData((prev) => ({ ...prev, GeneticCond: text }))}
-                                    setKey={setKeyUp}
-                                />
-                                <UserEditLine
-                                    title={'Chronic Illnesses:'}
-                                    placeholderText={'N/A'}
-                                    value={formData.ChronicIll}
-                                    onChangeText={(text) => setFormData((prev) => ({ ...prev, ChronicIll: text }))}
-                                    setKey={setKeyUp}
-                                />
-                                <UserEditLine
-                                    title={'Allergies: '}
-                                    placeholderText={'N/A'}
-                                    value={formData.Allergies}
-                                    onChangeText={(text) => setFormData((prev) => ({ ...prev, Allergies: text }))}
-                                    setKey={setKeyUp}
-                                />
-                                <UserEditLine
-                                    title={'Medications:'}
-                                    placeholderText={'N/A'}
-                                    value={formData.Medications}
-                                    onChangeText={(text) => setFormData((prev) => ({ ...prev, Medications: text }))}
-                                    setKey={setKeyUp}
-                                />
-                                <Spacer height={20}/>
-                                <UserEditLine
-                                    title={'Last Screening Date:'}
-                                    placeholderText={'N/A'}
-                                    value={formData.RecentScreenDate}
-                                    onChangeText={(text) => setFormData((prev) => ({ ...prev, RecentScreenDate: text }))}
-                                    setKey={setKeyUp}
-                                />
-                                <UserEditLine
-                                    title={'Last Screening Info:'}
-                                    placeholderText={'N/A'}
-                                    value={formData.RecentScreenInfo}
-                                    onChangeText={(text) => setFormData((prev) => ({ ...prev, RecentScreenInfo: text }))}
-                                    setKey={setKeyUp}
-                                />
-                                {/*error message displayed on inputting the wrong format in DOB and LSD */}
-                                {errMessage && <Text style={styles.error}>{errMessage}</Text>}
+                            </ThemedButton>
 
-                                {/*custom set of modal buttons. Way too unnecessary, but I proved to myself I can make them. */}
-                                <ModalButtons
-                                    styleSub={{backgroundColor: Colors.primary}}
-                                    subText={'Submit'}
-                                    cancText={'Cancel'}
-                                    onSubmit={handlerSubmitPress}
-                                    onCancel={handleCancelPress}
-                                />
+                            <ThemedButton
+                                onPress={()=>{setLocation('Hospital')}}
+                                style={[
+                                    location === 'Hospital' ? {backgroundColor: Colors.primary} : {backgroundColor: theme.buttonColor},
+                                    {
+                                        borderRadius: 0,
+                                        width:'33%',
+                                        paddingHorizontal: 0
+                                    }
+                                ]}
+                            >
+                                <Text
+                                    style={[
+                                        location === 'Hospital' ? {color: 'white', fontWeight: 500} : {color: theme.text, fontWeight: 400} ,
+                                        {
+                                            fontSize: 16,
+                                            textAlign: 'center'
+                                        }
+                                    ]}
+                                >
+                                    Hospital
+                                </Text>
+                            </ThemedButton>
+                            <ThemedButton
+                                onPress={()=>{setLocation('Clinic')}}
+                                style={[
+                                    location === 'Clinic' ? {backgroundColor: Colors.primary} : {backgroundColor: theme.buttonColor},
+                                    {
+                                        borderTopLeftRadius: 0,
+                                        borderBottomLeftRadius: 0,
+                                        width:'33%',
+                                        paddingHorizontal: 0
+                                    }
+                                ]}
+                            >
+                                <Text
+                                    style={[
+                                        location === 'Clinic' ? {color: 'white', fontWeight: 500} : {color: theme.text, fontWeight: 400} ,
+                                        {
+                                            fontSize: 16,
+                                            textAlign: 'center'
+                                        }
+                                    ]}
+                                >
+                                    Clinic
+                                </Text>
+                            </ThemedButton>
+                        </View>
+
+                        {/*Pressable Icon to send user to Maps app to find pharmacy/hospital/clinic*/}
+                        <Pressable
+                            onPress={openMaps}
+                            style={[
+                                styles.mapPressable,
+                                {
+                                    backgroundColor: theme.uiBackground,
+                                    borderColor: theme.navBackground,
+                                }]}
+                        >
+                            {location == 'Pharmacy' &&<Image
+                                source={require('../../assets/img/mapsRedirectIcon.png')}
+                                style={{height: '90%', width: '90%'}}
+                            />}
+                            {location == 'Hospital' &&<Image
+                                source={require('../../assets/img/mapRedirectHospitalIcon.png')}
+                                style={{height: '90%', width: '90%'}}
+                            />}
+                            {location == 'Clinic' &&<Image
+                                source={require('../../assets/img/mapRedirectClinicIcon.png')}
+                                style={{height: '90%', width: '90%'}}
+                            />}
+                            <View
+                                style={[
+                                    styles.mapView,
+                                    {
+                                        backgroundColor:theme.navBackground,
+                                    }
+                                ]}
+                            >
+                                <ThemedText
+                                    style={styles.heading}
+                                >
+                                    Find nearby {location}
+                                </ThemedText>
                             </View>
-                            {/* artificially adding and removing height so user can access every field*/}
-                            {keyUp && <Spacer height={screenHeight/2}/>}
-                        </ScrollView>
-                    </View>
-                    </TouchableWithoutFeedback>
-                </Modal>
+                        </Pressable>
+
+                        <Spacer/>
+
+                        {/* Modal window for editing user medical information */}
+                        <Modal
+                            animationType={'slide'}
+                            transparent={true}
+                            visible={editInfo}
+                            backdropColor={theme.navBackground}
+                            //onRequestClose={() => {setEditInfo(!editInfo)}}
+                        >
+                            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                            <View style={styles.centeredView}>
+                                <ScrollView showsVerticalScrollIndicator={false}>
+                                    {/* I wanted to make this as compact as <UserDataLine/> but failed miserably */}
+                                    <View style={[styles.modalView, {backgroundColor: theme.navBackground}]}>
+                                        <Text style={{ color: theme.text, textAlign: 'center', fontSize: 20, fontWeight: 500 }}>
+                                            Edit Health information
+                                        </Text>
+                                        <Spacer height={10}/>
+                                        <View
+                                            style={[styles.fieldView, {borderColor: theme.background, backgroundColor: theme.background}]}
+                                        >
+                                            <Pressable
+                                                onPress={()=>setShowBaseInfo(!showBaseInfo)}
+                                                style={styles.fieldDropdownBox}
+                                            >
+                                                <Ionicons
+                                                    size={20}
+                                                    color={theme.iconColor}
+                                                    name={showBaseInfo ? 'chevron-up' : 'chevron-down'}
+                                                />
+                                                <ThemedText title style={{fontWeight:450}}>
+                                                    Personal Information
+                                                </ThemedText>
+                                            </Pressable>
+                                            {showBaseInfo &&
+                                                <>
+                                                    <UserEditLine
+                                                        title={'Full Name:'}
+                                                        placeholderText={'...'}
+                                                        value={formData.FullName}
+                                                        onChangeText={(text) => setFormData((prev) => ({ ...prev, FullName: text }))}
+                                                        setKey={setKeyUp}
+                                                    />
+                                                    <UserEditLine
+                                                        title={'Date of Birth:'}
+                                                        placeholderText={'...'}
+                                                        value={formData.DOB}
+                                                        onChangeText={(text) => setFormData((prev) => ({ ...prev, DOB: text }))}
+                                                        setKey={setKeyUp}
+                                                    />
+                                                    <UserEditLine
+                                                        title={'Address:'}
+                                                        placeholderText={'...'}
+                                                        value={formData.Address}
+                                                        onChangeText={(text) => setFormData((prev) => ({ ...prev, Address: text }))}
+                                                        setKey={setKeyUp}
+                                                    />
+                                                    <UserEditLine
+                                                        title={'Emergency Contact:'}
+                                                        placeholderText={'...'}
+                                                        value={formData.EmergNum}
+                                                        onChangeText={(text) => setFormData((prev) => ({ ...prev, EmergNum: text }))}
+                                                        setKey={setKeyUp}
+                                                    />
+                                                </>
+                                            }
+                                        </View>
+                                        <View
+                                            style={[styles.fieldView, {borderColor: theme.background, backgroundColor: theme.background}]}
+                                        >
+                                            <Pressable
+                                                onPress={()=>setShowMidInfo(!showMidInfo)}
+                                                style={styles.fieldDropdownBox}
+                                            >
+                                                <Ionicons
+                                                    size={20}
+                                                    color={theme.iconColor}
+                                                    name={showMidInfo ? 'chevron-up' : 'chevron-down'}
+                                                />
+                                                <ThemedText title style={{fontWeight:450}}>
+                                                    Medical Information
+                                                </ThemedText>
+                                            </Pressable>
+                                            {showMidInfo &&
+                                                <>
+                                                    <UserEditLine
+                                                        title={'Blood Type:'}
+                                                        placeholderText={'...'}
+                                                        value={formData.BloodType}
+                                                        onChangeText={(text) => setFormData((prev) => ({ ...prev, BloodType: text }))}
+                                                        setKey={setKeyUp}
+                                                    />
+                                                    <UserEditLine
+                                                        title={'Genetic Conditions:'}
+                                                        placeholderText={'...'}
+                                                        value={formData.GeneticCond}
+                                                        onChangeText={(text) => setFormData((prev) => ({ ...prev, GeneticCond: text }))}
+                                                        setKey={setKeyUp}
+                                                    />
+                                                    <UserEditLine
+                                                        title={'Chronic Illnesses:'}
+                                                        placeholderText={'...'}
+                                                        value={formData.ChronicIll}
+                                                        onChangeText={(text) => setFormData((prev) => ({ ...prev, ChronicIll: text }))}
+                                                        setKey={setKeyUp}
+                                                    />
+                                                    <UserEditLine
+                                                        title={'Allergies: '}
+                                                        placeholderText={'...'}
+                                                        value={formData.Allergies}
+                                                        onChangeText={(text) => setFormData((prev) => ({ ...prev, Allergies: text }))}
+                                                        setKey={setKeyUp}
+                                                    />
+                                                    <UserEditLine
+                                                        title={'Medications:'}
+                                                        placeholderText={'...'}
+                                                        value={formData.Medications}
+                                                        onChangeText={(text) => setFormData((prev) => ({ ...prev, Medications: text }))}
+                                                        setKey={setKeyUp}
+                                                    />
+                                                </>
+                                            }
+                                        </View>
+                                        <View
+                                            style={[styles.fieldView, {borderColor: theme.background, backgroundColor: theme.background}]}
+                                        >
+                                            <Pressable
+                                                onPress={()=>setShowEndInfo(!showEndInfo)}
+                                                style={styles.fieldDropdownBox}
+                                            >
+                                                <Ionicons
+                                                    size={20}
+                                                    color={theme.iconColor}
+                                                    name={showEndInfo ? 'chevron-up' : 'chevron-down'}
+                                                />
+                                                <ThemedText title style={{fontWeight:450}}>
+                                                    Medical Records
+                                                </ThemedText>
+                                            </Pressable>
+                                            {showEndInfo &&
+                                                <>
+                                                    <UserEditLine
+                                                        title={'Last Screening Date:'}
+                                                        placeholderText={'...'}
+                                                        value={formData.RecentScreenDate}
+                                                        onChangeText={(text) => setFormData((prev) => ({ ...prev, RecentScreenDate: text }))}
+                                                        setKey={setKeyUp}
+                                                    />
+                                                    <UserEditLine
+                                                        title={'Last Screening Info:'}
+                                                        placeholderText={'...'}
+                                                        value={formData.RecentScreenInfo}
+                                                        onChangeText={(text) => setFormData((prev) => ({ ...prev, RecentScreenInfo: text }))}
+                                                        setKey={setKeyUp}
+                                                    />
+                                                    <UserEditLine
+                                                        title={'Caregiver ID:'}
+                                                        placeholderText={'...'}
+                                                        value={formData.CaregiverID}
+                                                        onChangeText={(text) => setFormData((prev) => ({ ...prev, CaregiverID: text }))}
+                                                        setKey={setKeyUp}
+                                                    />
+                                                </>
+                                            }
+                                        </View>
+                                        {/*error message displayed on inputting the wrong format in DOB and LSD */}
+                                        {errMessage && <Text style={styles.error}>{errMessage}</Text>}
+
+                                        {/*custom set of modal buttons. Way too unnecessary, but I proved to myself I can make them. */}
+                                        <ModalButtons
+                                            styleSub={{backgroundColor: Colors.primary}}
+                                            subText={'Submit'}
+                                            cancText={'Cancel'}
+                                            onSubmit={handlerSubmitPress}
+                                            onCancel={handleCancelPress}
+                                        />
+                                    </View>
+                                    {/* artificially adding and removing height so user can access every field*/}
+                                    {keyUp && <Spacer height={screenHeight/2}/>}
+                                </ScrollView>
+                            </View>
+                            </TouchableWithoutFeedback>
+                        </Modal>
+
+                        <ThemedText title style={[styles.heading, {marginVertical: 15}]}>
+                            CALL EMERGENCY CONTACT
+                        </ThemedText>
+
+
+                        <ThemedButton
+                            primary
+                            style={{minWidth: '60%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}
+                            onPress={callNumber}
+                        >
+                            <Ionicons
+                                size={38}
+                                color={'white'}
+                                name={'call'}
+                            />
+                            <Text title style={{color: 'white', fontWeight: 800, fontSize: 20}}>
+                                 {row?.EmergNum?.trim() || DEFAULT_CONTACT}
+                            </Text>
+                        </ThemedButton>
+                    </>
+                }
+
+
+                {showDeps &&
+                    <>
+                        <ThemedText title style={[styles.heading, {fontSize: 20, marginVertical: 5}]}>
+                            Add Patient ID
+                        </ThemedText>
+
+                        <View
+                            style={[styles.fieldDropdownBox, {justifyContent: 'center'}]}
+                        >
+                            <ThemedTextInput
+                                style={{width: '60%', height: 55, marginRight: 10, paddingVertical: 0}}
+                                placeholder={'...'}
+                                value={dependent}
+                                onChangeText={setDependent}
+                            />
+                            <ThemedButton
+                                primary
+                                style={{
+                                    height: '95%',
+                                }}
+                                onPress={() => {
+                                    setErrMessage('')
+                                    if (!dependent.trim()) return;
+                                    handleAddDep(dependent.trim());
+                                }}
+                            >
+                                <Text
+                                    style={{textAlign:'center', color: 'white', fontSize: 16, fontWeight: 600}}
+                                >
+                                    Add Patient
+                                </Text>
+                            </ThemedButton>
+                        </View>
+
+                        {errMessage && <Text style={styles.error}>{errMessage}</Text>}
+
+                        <Spacer/>
+
+                        <ThemedText title style={[styles.heading, {fontSize: 24, fontWeight: 800, marginBottom: 5}]}>
+                            Patients
+                        </ThemedText>
+
+                        <ThemedHr/>
+
+                        <Spacer/>
+
+                        {depArr.length === 0 &&
+                            <ThemedText>
+                                No Patients...
+                            </ThemedText>
+                        }
+
+                        {depArr?.map((dep, index) => (
+                            <Pressable
+                                key={dep.id}
+                                onPress={() => handleOpenDependent(dep.id)}
+                                style={[
+                                    styles.card,
+                                    {backgroundColor: theme.uiBackground, borderColor: theme.iconColor}
+                                ]}
+                            >
+                                <ThemedText title style={styles.cardTitle}>
+                                    #{index + 1} {dep.name}
+                                </ThemedText>
+
+                                <ThemedText>
+                                    ID: {dep.id}
+                                </ThemedText>
+                            </Pressable>
+                        ))}
+
+                        <Modal
+                            visible={depModalVisible}
+                            transparent={true}
+                            animationType={'slide'}
+                        >
+                            <View
+                                style={{flex:1, justifyContent: 'center'}}
+                            >
+                                <View
+                                    style={[
+                                        styles.modalView,
+                                        { backgroundColor: theme.navBackground, borderColor: Colors.primary }
+                                    ]}
+                                >
+                                    <View style={[styles.section, { backgroundColor: theme.navBackground }]}>
+                                        <ThemedText title style={{ fontWeight: 'bold', fontSize: 20 }}>
+                                            {selectedDep?.FullName} Information
+                                        </ThemedText>
+                                        <ThemedHr width={'75%'} style={{borderWidth: 1.5, marginVertical: 5}}/>
+                                        <Spacer height={20} />
+
+                                        {/* Well well well.. Anyway. Basic UserData Lines to display the medical information without a trillion lines of code in one page. Ergo, 'modularity' */}
+                                        {/*vvvvvvvvv To be automated and tied to user-info db/json */}
+                                        <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>Personal Information</ThemedText>
+                                        <UserDataLine title={'Full name'} userData={selectedDep?.FullName ?? '-'} />
+                                        <UserDataLine title={'Date of Birth'} userData={selectedDep?.DOB?.split('T')[0] ?? 'YYYY-MM-DD'} />
+                                        <UserDataLine title={'Address'} userData={selectedDep?.Address ?? '-'} />
+                                        <UserDataLine title={'Emergency Contact'} userData={selectedDep?.EmergNum ?? DEFAULT_CONTACT} />
+                                        <Spacer />
+                                        <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>Medical Information</ThemedText>
+                                        <UserDataLine title={'Blood Type'} userData={selectedDep?.BloodType ?? '-'} />
+                                        <UserDataLine title={'Genetic Conditions'} userData={selectedDep?.GeneticCond ?? '-'} />
+                                        <UserDataLine title={'Chronic Illness'} userData={selectedDep?.ChronicIll ?? '-'} />
+                                        <UserDataLine title={'Allergies'} userData={selectedDep?.Allergies ?? '-'} />
+                                        <UserDataLine title={'Medication'} userData={selectedDep?.Medications ?? '-'} />
+                                        <Spacer />
+                                        <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>Medical Records</ThemedText>
+                                        <UserDataLine title={'Recent Screening Date'} userData={selectedDep?.RecentScreenDate?.split('T')[0] ?? 'YYYY-MM-DD'} />
+                                        <UserDataLine title={'Recent Screening Info'} userData={selectedDep?.RecentScreenInfo ?? '-'} />
+                                        <UserDataLine title={'Caregiver ID'} userData={selectedDep?.CaregiverID ?? '-'} />
+                                    </View>
+
+                                    <ModalButtons
+                                        subText={'Remove User'}
+                                        cancText={'Exit'}
+                                        onSubmit={()=>{handleDelDep(selectedDep?.$id)}}
+                                        onCancel={()=>{setDepModalVisible(false)}}
+
+                                    />
+
+                                </View>
+                            </View>
+                        </Modal>
+                    </>
+                }
+                <Spacer/>
             </ThemedView>
         </ScrollView>
     )
@@ -575,7 +1098,8 @@ const styles = StyleSheet.create({
     modalView: {
         margin: 10,
         borderRadius: 20,
-        padding: 15,
+        paddingVertical: 15,
+        paddingHorizontal: 10,
         alignItems: 'center',
         elevation: 5,
     },
@@ -588,5 +1112,34 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderRadius: 6,
         width:"95%"
-    }
+    },
+// DropDown CSS
+    fieldDropdownBox: {
+        width: '100%',
+        flexDirection:'row',
+        alignItems:'center',
+        justifyContent:'space-between',
+        marginVertical: 10,
+        paddingHorizontal: 10
+    },
+    fieldView: {
+        borderWidth: 2,
+        borderRadius: 10,
+        width: '100%',
+        paddingHorizontal: 10,
+        marginVertical: 5
+    },
+// Profile Cards
+    card: {
+        borderWidth: 1,
+        borderRadius: 12,
+        padding: 15,
+        marginBottom: 12,
+        width: '90%'
+    },
+    cardTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 8
+    },
 })
