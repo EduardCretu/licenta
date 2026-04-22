@@ -55,6 +55,9 @@ const Profile = () => {
     const [depModalVisible, setDepModalVisible] = useState(false);
     const [delDepWin, setDelDepWin] = useState(false)
     const [missingDep, setMissingDep] = useState(null)
+    const [depNote, setDepNote] = useState('')
+    const [showDepNote, setShowDepNote] = useState(false)
+    const [depNoteSuccess, setDepNoteSuccess] = useState(false)
     // hooking the contexts and consuming them
     const { user } = useUser();
     const { theme } = useTheme();
@@ -76,6 +79,8 @@ const Profile = () => {
         RecentScreenDate: null,
         RecentScreenInfo: null,
         EmergNum: null,
+        CaregiverID: null,
+        CaregiverNote: null,
     });
 
     // quick little function to fetch saved image URI from storage
@@ -111,9 +116,9 @@ const Profile = () => {
     // also since createRow wont let me do that otherwise
     useEffect(() => {
         // fetching the data
-        fetchMedInfoById(user.$id);
+        fetchMedInfoById(user?.$id);
         loadImage();
-    }, [user?.$id, medInfo.isCaregiver]);
+    }, [user?.$id, medInfo?.isCaregiver]);
     // render for fetching DepRow. Only runs the fetch function if user's .isCaregiver is true.
     useEffect(() => {
         if(!row?.isCaregiver) {
@@ -125,7 +130,7 @@ const Profile = () => {
             return
         }
         fetchDeps()
-    }, [user?.$id, medInfo.isCaregiver]);
+    }, [user?.$id, medInfo?.isCaregiver]);
 
     // another useEffect function
     useEffect(() => {
@@ -146,8 +151,10 @@ const Profile = () => {
             Medications: row?.Medications ?? null,
             RecentScreenDate: row?.RecentScreenDate?.split('T')[0] ?? null,
             RecentScreenInfo: row?.RecentScreenInfo ?? null,
-            CaregiverID: row?.CaregiverID ?? null
+            CaregiverID: row?.CaregiverID ?? null,
+            CaregiverNote: row?.CaregiverNote ?? null,
         });
+        console.log(formData)
         // repeat render when row.$id changes, ergo when user Changes.
     }, [row?.$id]);
 
@@ -198,6 +205,8 @@ const Profile = () => {
         setEditInfo(false);
         setErrMessage(false)
         setShowBaseInfo(true)
+        setShowMidInfo(false)
+        setShowEndInfo(false)
         setKeyUp(false);
         // refetch data.
         await fetchMedInfoById(user.$id);
@@ -208,6 +217,9 @@ const Profile = () => {
         // close window, error and reset local obj data to fetched or null.
         setEditInfo(false)
         setErrMessage(false)
+        setShowBaseInfo(true)
+        setShowMidInfo(false)
+        setShowEndInfo(false)
         setKeyUp(false)
         setShowBaseInfo(true)
         setFormData({
@@ -223,6 +235,7 @@ const Profile = () => {
             RecentScreenDate: row?.RecentScreenDate?.split('T')[0] ?? null,
             RecentScreenInfo: row?.RecentScreenInfo ?? null,
             CaregiverID: row?.CaregiverID ?? null,
+            CaregiverNote: row?.CaregiverNote ?? null,
         });
     }
 
@@ -420,6 +433,27 @@ const Profile = () => {
         }
     }
 
+    async function handleSendNote(ID) {
+        try {
+            await updateMedInfo(ID, {CaregiverNote: depNote})
+            setDepNote('')
+            setShowDepNote(false)
+            setDepNoteSuccess(true)
+        }
+        catch (err) {
+            console.log(err.message)
+        }
+    }
+    async function handleClearNote(ID) {
+        try {
+            await updateMedInfo(ID, {CaregiverNote: null})
+            await fetchMedInfoById(ID)
+        }
+        catch (err) {
+            console.log(err.message)
+        }
+    }
+
 
     // the components itself, should probs add a ScrollView
     return (
@@ -559,22 +593,23 @@ const Profile = () => {
                             {/* Well well well.. Anyway. Basic UserData Lines to display the medical information without a trillion lines of code in one page. Ergo, 'modularity' */}
                             {/*vvvvvvvvv To be automated and tied to user-info db/json */}
                             <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>Personal Information</ThemedText>
-                            <UserDataLine title={'Full name'} userData={row?.FullName ?? '-'} />
+                            <UserDataLine title={'Full name'} userData={row?.FullName ?? '-'} topBorder/>
                             <UserDataLine title={'Date of Birth'} userData={row?.DOB?.split('T')[0] ?? 'YYYY-MM-DD'} />
                             <UserDataLine title={'Address'} userData={row?.Address ?? '-'} />
-                            <UserDataLine title={'Emergency Contact'} userData={row?.EmergNum ?? DEFAULT_CONTACT} placeholderText={DEFAULT_CONTACT}/>
-                            <Spacer />
+                            <UserDataLine title={'Emergency Contact'} userData={row?.EmergNum ?? DEFAULT_CONTACT} placeholderText={DEFAULT_CONTACT} bottomBorder/>
+                            <Spacer height={20}/>
                             <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>Medical Information</ThemedText>
-                            <UserDataLine title={'Blood Type'} userData={row?.BloodType ?? '-'} />
+                            <UserDataLine title={'Blood Type'} userData={row?.BloodType ?? '-'} topBorder />
                             <UserDataLine title={'Genetic Conditions'} userData={row?.GeneticCond ?? '-'} />
                             <UserDataLine title={'Chronic Illness'} userData={row?.ChronicIll ?? '-'} />
                             <UserDataLine title={'Allergies'} userData={row?.Allergies ?? '-'} />
-                            <UserDataLine title={'Medication'} userData={row?.Medications ?? '-'} />
-                            <Spacer />
+                            <UserDataLine title={'Medication'} userData={row?.Medications ?? '-'} bottomBorder />
+                            <Spacer height={20}/>
                             <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>Medical Records</ThemedText>
-                            <UserDataLine title={'Recent Screening Date'} userData={row?.RecentScreenDate?.split('T')[0] ?? 'YYYY-MM-DD'} />
+                            <UserDataLine title={'Recent Screening Date'} userData={row?.RecentScreenDate?.split('T')[0] ?? 'YYYY-MM-DD'} topBorder />
                             <UserDataLine title={'Recent Screening Info'} userData={row?.RecentScreenInfo ?? '-'} />
-                            <UserDataLine title={'Caregiver ID'} userData={row?.CaregiverID ?? '-'} />
+                            <UserDataLine title={'Caregiver ID'} userData={row?.CaregiverID ?? '-'} bottomBorder={!(medInfo?.CaregiverID?.trim() && medInfo?.CaregiverNote?.trim())} />
+                            {(medInfo?.CaregiverID?.trim() && medInfo?.CaregiverNote?.trim()) && <UserDataLine title={'Caregiver Note'} userData={row?.CaregiverNote ?? '-'} bottomBorder />}
                         </View>
 
 
@@ -597,16 +632,7 @@ const Profile = () => {
                             Need to find assistance?
                         </ThemedText>
                         <View
-                            style={{
-                                flexDirection:'row',
-                                width: '90%',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                backgroundColor: theme.navBackground,
-                                padding: 10,
-                                borderRadius: 10,
-                                margin: 10
-                                }}
+                        style={[styles.mapsPressableBtns, {backgroundColor: theme.navBackground}]}
                         >
                             <ThemedButton
                                 onPress={()=>{setLocation('Pharmacy')}}
@@ -615,6 +641,7 @@ const Profile = () => {
                                     {
                                         borderTopRightRadius: 0,
                                         borderBottomRightRadius: 0,
+                                        borderBottomLeftRadius: 0,
                                         width:'33%',
                                         paddingHorizontal: 0
                                     }
@@ -664,6 +691,7 @@ const Profile = () => {
                                     {
                                         borderTopLeftRadius: 0,
                                         borderBottomLeftRadius: 0,
+                                        borderBottomRightRadius: 0,
                                         width:'33%',
                                         paddingHorizontal: 0
                                     }
@@ -906,6 +934,18 @@ const Profile = () => {
                                                         onChangeText={(text) => setFormData((prev) => ({ ...prev, CaregiverID: text }))}
                                                         setKey={setKeyUp}
                                                     />
+                                                    {(medInfo?.CaregiverID?.trim() && medInfo?.CaregiverNote?.trim())  &&
+                                                        <ThemedButton
+                                                            primary
+                                                            onPress={() => {handleClearNote(user?.$id)}}
+                                                        >
+                                                            <Text
+                                                                style={{color: 'white', fontWeight: 600, fontSize: 16, textAlign: 'center'}}
+                                                            >
+                                                                Clear Caregiver Note
+                                                            </Text>
+                                                        </ThemedButton>
+                                                    }
                                                 </>
                                             }
                                         </View>
@@ -1014,8 +1054,8 @@ const Profile = () => {
                             transparent={true}
                             animationType={'slide'}
                         >
-                            <View
-                                style={{flex:1, justifyContent: 'center'}}
+                            <ScrollView
+                                style={{flex:1}}
                             >
                                 <View
                                     style={[
@@ -1023,7 +1063,7 @@ const Profile = () => {
                                         { backgroundColor: theme.navBackground }
                                     ]}
                                 >
-                                    <View style={[styles.section, { backgroundColor: theme.navBackground }]}>
+                                    <View style={[styles.section, { backgroundColor: theme.navBackground, width: '100%', paddingHorizontal: 0 }]}>
                                         <ThemedText title style={{ fontWeight: 'bold', fontSize: 20 }}>
                                             {selectedDep?.FullName} Information
                                         </ThemedText>
@@ -1033,23 +1073,92 @@ const Profile = () => {
                                         {/* Well well well.. Anyway. Basic UserData Lines to display the medical information without a trillion lines of code in one page. Ergo, 'modularity' */}
                                         {/*vvvvvvvvv To be automated and tied to user-info db/json */}
                                         <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>Personal Information</ThemedText>
-                                        <UserDataLine title={'Full name'} userData={selectedDep?.FullName ?? '-'} />
+                                        <UserDataLine title={'Full name'} userData={selectedDep?.FullName ?? '-'} topBorder />
                                         <UserDataLine title={'Date of Birth'} userData={selectedDep?.DOB?.split('T')[0] ?? 'YYYY-MM-DD'} />
                                         <UserDataLine title={'Address'} userData={selectedDep?.Address ?? '-'} />
-                                        <UserDataLine title={'Emergency Contact'} userData={row?.EmergNum ?? DEFAULT_CONTACT} placeholderText={DEFAULT_CONTACT}/>
-                                        <Spacer />
+                                        <UserDataLine title={'Emergency Contact'} userData={row?.EmergNum ?? DEFAULT_CONTACT} placeholderText={DEFAULT_CONTACT} bottomBorder/>
+                                        <Spacer height={20} />
                                         <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>Medical Information</ThemedText>
-                                        <UserDataLine title={'Blood Type'} userData={selectedDep?.BloodType ?? '-'} />
+                                        <UserDataLine title={'Blood Type'} userData={selectedDep?.BloodType ?? '-'} topBorder />
                                         <UserDataLine title={'Genetic Conditions'} userData={selectedDep?.GeneticCond ?? '-'} />
                                         <UserDataLine title={'Chronic Illness'} userData={selectedDep?.ChronicIll ?? '-'} />
                                         <UserDataLine title={'Allergies'} userData={selectedDep?.Allergies ?? '-'} />
-                                        <UserDataLine title={'Medication'} userData={selectedDep?.Medications ?? '-'} />
-                                        <Spacer />
+                                        <UserDataLine title={'Medication'} userData={selectedDep?.Medications ?? '-'} bottomBorder/>
+                                        <Spacer height={20} />
                                         <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>Medical Records</ThemedText>
-                                        <UserDataLine title={'Recent Screening Date'} userData={selectedDep?.RecentScreenDate?.split('T')[0] ?? 'YYYY-MM-DD'} />
+                                        <UserDataLine title={'Recent Screening Date'} userData={selectedDep?.RecentScreenDate?.split('T')[0] ?? 'YYYY-MM-DD'} topBorder />
                                         <UserDataLine title={'Recent Screening Info'} userData={selectedDep?.RecentScreenInfo ?? '-'} />
-                                        <UserDataLine title={'Caregiver ID'} userData={selectedDep?.CaregiverID ?? '-'} />
+                                        <UserDataLine title={'Caregiver ID'} userData={selectedDep?.CaregiverID ?? '-'} bottomBorder/>
                                     </View>
+
+
+                                    <View
+                                        style={[styles.fieldView, {borderColor: theme.background, backgroundColor: theme.background}]}
+                                    >
+                                        <Pressable
+                                            onPress={()=>setShowDepNote(!showDepNote)}
+                                            style={[styles.fieldDropdownBox]}
+                                        >
+                                            <Ionicons
+                                                size={20}
+                                                color={theme.iconColor}
+                                                name={showDepNote ? 'chevron-up' : 'chevron-down'}
+                                            />
+                                            <ThemedText title style={{fontWeight:450}}>
+                                                Send Note to {selectedDep?.FullName}
+                                            </ThemedText>
+                                        </Pressable>
+                                        {showDepNote &&
+                                            <>
+                                                <UserEditLine
+                                                    multiline
+                                                    styleView={{height: 200}}
+                                                    styleTxt={{width: '25%'}}
+                                                    styleInput={{width: '70%', height: '95%', textAlignVertical: 'top'}}
+                                                    title={`Send Note to ${selectedDep?.FullName}:`}
+                                                    placeholderText={'...'}
+                                                    value={depNote}
+                                                    onChangeText={setDepNote}
+                                                    //setKey={setKeyUp}
+                                                />
+                                                <ThemedButton
+                                                    primary
+                                                    onPress={() => {handleSendNote(selectedDep?.$id)}}
+                                                >
+                                                    <Text
+                                                        style={{color: 'white', fontWeight: 600, fontSize: 16, textAlign: 'center'}}
+                                                    >
+                                                        Send Note
+                                                    </Text>
+                                                </ThemedButton>
+                                            </>
+                                        }
+                                    </View>
+
+                                    {depNoteSuccess && <Modal
+                                        animationType={"slide"}
+                                        transparent={true}
+                                    >
+                                        <Pressable
+                                            style={{
+                                                height: '100%',
+                                                width: '100%',
+                                                justifyContent: 'center',
+                                                alignItems: 'center'
+                                            }}
+                                            onPress={() => {setDepNoteSuccess(false)}}>
+                                            <Text
+                                                style={styles.announcement}
+                                            >
+                                                {`\nThe note to ${selectedDep?.FullName} was sent Successfully\n`}
+                                            </Text>
+                                        </Pressable>
+                                    </Modal>}
+
+
+                                    <Spacer/>
+
+                                    <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>Record Options</ThemedText>
 
                                     <ModalButtons
                                         subText={'Remove User'}
@@ -1060,7 +1169,7 @@ const Profile = () => {
                                     />
 
                                 </View>
-                            </View>
+                            </ScrollView>
                         </Modal>
 
                         {/* modals to delete Dependent record from Dep table when dependent ID is not found in MedInfo table*/}
@@ -1147,14 +1256,23 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         width: '90%',
         height: 340,
-        borderRadius: 20,
         borderWidth:5,
     },
+    mapsPressableBtns: {
+        flexDirection:'row',
+        width: '90%',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingTop: 6,
+        paddingHorizontal:5,
+        paddingBottom: 2,
+        borderTopRightRadius: 10,
+        borderTopLeftRadius: 10,
+        margin: 10,
+        marginBottom: 0
+    },
     mapView: {
-        width: '100%',
-        height: '20%',
-        borderBottomLeftRadius: 20,
-        borderBottomRightRadius: 20,
+        width: '101%',
         padding: 5
     },
 // Modal Related CSS
@@ -1179,6 +1297,16 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderRadius: 6,
         width:"95%"
+    },
+    announcement: {
+        textAlign: 'center',
+        color: Colors.primary,
+        padding: 10,
+        backgroundColor: "rgb(134, 194, 152)",
+        borderColor: Colors.primary,
+        borderWidth: 1,
+        borderRadius: 6,
+        width:"70%",
     },
 // DropDown CSS
     fieldDropdownBox: {

@@ -42,7 +42,13 @@ export function MedInfoProvider({ children }) {
         // return reponse promise or null for createRow() function
         return response
         } catch (err) {
-        throw new Error(err.message);
+            const message = err?.message || '';
+
+            if (message.includes('could not be found')) {
+                return null;
+            }
+
+            throw new Error(err.message);
         }
     }
     async function statelessFetchMedInfoById(ID) {

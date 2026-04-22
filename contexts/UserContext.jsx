@@ -54,6 +54,7 @@ export function UserProvider({ children }) {
                 password: password,
             });
             const response = await account.get();
+            ensureMedInfo(response.$id)
             setUser(response);
         } catch (error) {
             throw Error(error.message);
