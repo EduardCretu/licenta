@@ -81,6 +81,7 @@ const Profile = () => {
         EmergNum: null,
         CaregiverID: null,
         CaregiverNote: null,
+        PhoneNum: null,
     });
 
     // quick little function to fetch saved image URI from storage
@@ -153,6 +154,7 @@ const Profile = () => {
             RecentScreenInfo: row?.RecentScreenInfo ?? null,
             CaregiverID: row?.CaregiverID ?? null,
             CaregiverNote: row?.CaregiverNote ?? null,
+            PhoneNum: row?.PhoneNum ?? null,
         });
         console.log(formData)
         // repeat render when row.$id changes, ergo when user Changes.
@@ -180,9 +182,15 @@ const Profile = () => {
         // Emergency number validation
         if (formData.EmergNum) {
             const phoneRegex = /^[0-9+]+$/;
-
             if (!phoneRegex.test(formData.EmergNum.trim())) {
-                err += 'Emergency number format: (+)1234567890\n';
+
+                err += 'Please enter a valid Emergency number: (+)1234567890\n';
+            }
+        }
+        if (formData.PhoneNum) {
+            const phoneRegex = /^\+?[1-9]\d{7,14}$/;
+            if (!phoneRegex.test(formData.PhoneNum.trim())) {
+                err += 'Please enter a valid phone number: (+)1234567890\n';
             }
         }
         // CaregiverID validation
@@ -236,6 +244,7 @@ const Profile = () => {
             RecentScreenInfo: row?.RecentScreenInfo ?? null,
             CaregiverID: row?.CaregiverID ?? null,
             CaregiverNote: row?.CaregiverNote ?? null,
+            PhoneNum: row?.PhoneNum ?? null,
         });
     }
 
@@ -272,7 +281,7 @@ const Profile = () => {
     };
 
     // function to call emergency contact or DEFAULT
-    async function callNumber() {
+    async function callEmergNumber() {
         try {
             await RNImmediatePhoneCall.immediatePhoneCall(
                 row?.EmergNum?.trim() || DEFAULT_CONTACT
@@ -283,6 +292,16 @@ const Profile = () => {
             console.log('call failed', err)
         }
     };
+
+    async function callNumber(number) {
+            try {
+                await RNImmediatePhoneCall.immediatePhoneCall(number);
+                console.log('Call commencing')
+            }
+            catch (err) {
+                console.log('call failed', err)
+            }
+        };
 
     // CAREGIVER FEATURE RELATED
 
@@ -596,6 +615,7 @@ const Profile = () => {
                             <UserDataLine title={'Full name'} userData={row?.FullName ?? '-'} topBorder/>
                             <UserDataLine title={'Date of Birth'} userData={row?.DOB?.split('T')[0] ?? 'YYYY-MM-DD'} />
                             <UserDataLine title={'Address'} userData={row?.Address ?? '-'} />
+                            <UserDataLine title={'Personal Number'} userData={row?.PhoneNum ?? '-'} placeholderText={'-'}/>
                             <UserDataLine title={'Emergency Contact'} userData={row?.EmergNum ?? DEFAULT_CONTACT} placeholderText={DEFAULT_CONTACT} bottomBorder/>
                             <Spacer height={20}/>
                             <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>Medical Information</ThemedText>
@@ -759,7 +779,7 @@ const Profile = () => {
                         <ThemedButton
                             primary
                             style={{minWidth: '60%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}
-                            onPress={callNumber}
+                            onPress={callEmergNumber}
                         >
                             <Ionicons
                                 size={38}
@@ -830,11 +850,20 @@ const Profile = () => {
                                                         setKey={setKeyUp}
                                                     />
                                                     <UserEditLine
+                                                        title={'Personal Number:'}
+                                                        placeholderText={'...'}
+                                                        value={formData.PhoneNum}
+                                                        onChangeText={(text) => setFormData((prev) => ({ ...prev, PhoneNum: text }))}
+                                                        setKey={setKeyUp}
+                                                        maxLength={16}
+                                                    />
+                                                    <UserEditLine
                                                         title={'Emergency Contact:'}
                                                         placeholderText={'...'}
                                                         value={formData.EmergNum}
                                                         onChangeText={(text) => setFormData((prev) => ({ ...prev, EmergNum: text }))}
                                                         setKey={setKeyUp}
+                                                        maxLength={16}
                                                     />
                                                 </>
                                             }
@@ -1076,7 +1105,8 @@ const Profile = () => {
                                         <UserDataLine title={'Full name'} userData={selectedDep?.FullName ?? '-'} topBorder />
                                         <UserDataLine title={'Date of Birth'} userData={selectedDep?.DOB?.split('T')[0] ?? 'YYYY-MM-DD'} />
                                         <UserDataLine title={'Address'} userData={selectedDep?.Address ?? '-'} />
-                                        <UserDataLine title={'Emergency Contact'} userData={row?.EmergNum ?? DEFAULT_CONTACT} placeholderText={DEFAULT_CONTACT} bottomBorder/>
+                                        <UserDataLine title={'Personal Number'} userData={selectedDep?.PhoneNum ?? '-'} placeholderText={'-'}/>
+                                        <UserDataLine title={'Emergency Contact'} userData={selectedDep?.EmergNum ?? DEFAULT_CONTACT} placeholderText={DEFAULT_CONTACT} bottomBorder/>
                                         <Spacer height={20} />
                                         <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>Medical Information</ThemedText>
                                         <UserDataLine title={'Blood Type'} userData={selectedDep?.BloodType ?? '-'} topBorder />
@@ -1091,6 +1121,7 @@ const Profile = () => {
                                         <UserDataLine title={'Caregiver ID'} userData={selectedDep?.CaregiverID ?? '-'} bottomBorder/>
                                     </View>
 
+                                    <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>Contact {selectedDep?.FullName}</ThemedText>
 
                                     <View
                                         style={[styles.fieldView, {borderColor: theme.background, backgroundColor: theme.background}]}
@@ -1134,6 +1165,53 @@ const Profile = () => {
                                             </>
                                         }
                                     </View>
+
+                                    <View
+                                        style={[
+                                            styles.fieldView,
+                                            {
+                                                borderColor: theme.background,
+                                                backgroundColor: theme.background,
+                                                flexDirection: 'row',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center',
+                                                paddingRight: 2
+                                            }
+                                        ]}
+                                    >
+                                        <ThemedText
+                                            style={{fontSize: 15, fontWeight: 450, marginLeft: 10}}
+                                        >
+                                            Call {selectedDep?.FullName}
+                                        </ThemedText>
+
+                                        <ThemedButton
+                                            primary
+                                            disabled={!selectedDep?.PhoneNum?.trim()}
+                                            style={[
+                                                {
+                                                    minWidth: '50%',
+                                                    maxHeight: '95%',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    flexDirection: 'row',
+                                                    opacity: selectedDep?.PhoneNum?.trim() ? 1 : 0.6,
+                                                }
+                                            ]}
+                                            onPress={()=>{callNumber(selectedDep?.PhoneNum)}}
+                                        >
+                                            <Ionicons
+                                                size={24}
+                                                color={'white'}
+                                                name={'call'}
+                                            />
+                                            <Text title style={{color: 'white', fontWeight: 800, fontSize: 16}}>
+                                                 {(selectedDep?.PhoneNum?.trim()) ? selectedDep?.PhoneNum : 'No number found'}
+                                            </Text>
+                                        </ThemedButton>
+
+                                    </View>
+
 
                                     {depNoteSuccess && <Modal
                                         animationType={"slide"}
