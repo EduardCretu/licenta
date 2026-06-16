@@ -26,6 +26,8 @@ import RNImmediatePhoneCall from 'react-native-immediate-phone-call';
 // pretty iconsm :)
 import { Ionicons } from '@expo/vector-icons'
 
+import { useTranslation } from 'react-i18next'
+
 // Constants
 const DEFAULT_AVATAR = require('../../assets/img/default-avatar.png')
 const DEFAULT_CONTACT = '1120000000'
@@ -83,6 +85,8 @@ const Profile = () => {
         CaregiverNote: null,
         PhoneNum: null,
     });
+
+    const { t } = useTranslation()
 
     // quick little function to fetch saved image URI from storage
     const loadImage = async () => {
@@ -156,7 +160,7 @@ const Profile = () => {
             CaregiverNote: row?.CaregiverNote ?? null,
             PhoneNum: row?.PhoneNum ?? null,
         });
-        console.log(formData)
+        //console.log(formData)
         // repeat render when row.$id changes, ergo when user Changes.
     }, [row?.$id]);
 
@@ -526,7 +530,7 @@ const Profile = () => {
                                     alignSelf: 'center'
                                 }}
                             >
-                                Caregiver
+                                {t('profile.badge')}
                             </Text>
                         }
                     </View>
@@ -568,7 +572,7 @@ const Profile = () => {
                                         }
                                     ]}
                                 >
-                                    See Self
+                                    {t('profile.caregiverTabs.selfTab')}
                                 </Text>
                             </ThemedButton>
                             <ThemedButton
@@ -592,7 +596,7 @@ const Profile = () => {
                                         }
                                     ]}
                                 >
-                                    See Patients
+                                    {t('profile.caregiverTabs.patientTab')}
                                 </Text>
                             </ThemedButton>
                         </View>
@@ -604,32 +608,32 @@ const Profile = () => {
                     <>
                         <View style={[styles.section, { backgroundColor: theme.navBackground }]}>
                             <ThemedText title style={{ fontWeight: 'bold', fontSize: 20 }}>
-                                User Information
+                                {t('profile.infoTable.headers.userInfo')}
                             </ThemedText>
                             <ThemedHr width={'75%'} style={{borderWidth: 1.5, marginVertical: 5}}/>
                             <Spacer height={20} />
 
                             {/* Well well well.. Anyway. Basic UserData Lines to display the medical information without a trillion lines of code in one page. Ergo, 'modularity' */}
                             {/*vvvvvvvvv To be automated and tied to user-info db/json */}
-                            <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>Personal Information</ThemedText>
-                            <UserDataLine title={'Full name'} userData={row?.FullName ?? '-'} topBorder/>
-                            <UserDataLine title={'Date of Birth'} userData={row?.DOB?.split('T')[0] ?? 'YYYY-MM-DD'} />
-                            <UserDataLine title={'Address'} userData={row?.Address ?? '-'} />
-                            <UserDataLine title={'Personal Number'} userData={row?.PhoneNum ?? '-'} placeholderText={'-'}/>
-                            <UserDataLine title={'Emergency Contact'} userData={row?.EmergNum ?? DEFAULT_CONTACT} placeholderText={DEFAULT_CONTACT} bottomBorder/>
+                            <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>{t('profile.infoTable.headers.persInfo')}</ThemedText>
+                            <UserDataLine title={t('profile.infoTable.fields.fullName')} userData={row?.FullName ?? '-'} topBorder/>
+                            <UserDataLine title={t('profile.infoTable.fields.DOB')} userData={row?.DOB?.split('T')[0] ?? 'YYYY-MM-DD'} />
+                            <UserDataLine title={t('profile.infoTable.fields.address')} userData={row?.Address ?? '-'} />
+                            <UserDataLine title={t('profile.infoTable.fields.personalNum')} userData={row?.PhoneNum ?? '-'} placeholderText={'-'}/>
+                            <UserDataLine title={t('profile.infoTable.fields.emergNum')} userData={row?.EmergNum ?? DEFAULT_CONTACT} placeholderText={DEFAULT_CONTACT} bottomBorder/>
                             <Spacer height={20}/>
-                            <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>Medical Information</ThemedText>
-                            <UserDataLine title={'Blood Type'} userData={row?.BloodType ?? '-'} topBorder />
-                            <UserDataLine title={'Genetic Conditions'} userData={row?.GeneticCond ?? '-'} />
-                            <UserDataLine title={'Chronic Illness'} userData={row?.ChronicIll ?? '-'} />
-                            <UserDataLine title={'Allergies'} userData={row?.Allergies ?? '-'} />
-                            <UserDataLine title={'Medication'} userData={row?.Medications ?? '-'} bottomBorder />
+                            <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>{t('profile.infoTable.headers.medInfo')}</ThemedText>
+                            <UserDataLine title={t('profile.infoTable.fields.bloodType')} userData={row?.BloodType ?? '-'} topBorder />
+                            <UserDataLine title={t('profile.infoTable.fields.genCond')} userData={row?.GeneticCond ?? '-'} />
+                            <UserDataLine title={t('profile.infoTable.fields.chronIll')} userData={row?.ChronicIll ?? '-'} />
+                            <UserDataLine title={t('profile.infoTable.fields.allergies')} userData={row?.Allergies ?? '-'} />
+                            <UserDataLine title={t('profile.infoTable.fields.medication')} userData={row?.Medications ?? '-'} bottomBorder />
                             <Spacer height={20}/>
-                            <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>Medical Records</ThemedText>
-                            <UserDataLine title={'Recent Screening Date'} userData={row?.RecentScreenDate?.split('T')[0] ?? 'YYYY-MM-DD'} topBorder />
-                            <UserDataLine title={'Recent Screening Info'} userData={row?.RecentScreenInfo ?? '-'} />
-                            <UserDataLine title={'Caregiver ID'} userData={row?.CaregiverID ?? '-'} bottomBorder={!(medInfo?.CaregiverID?.trim() && medInfo?.CaregiverNote?.trim())} />
-                            {(medInfo?.CaregiverID?.trim() && medInfo?.CaregiverNote?.trim()) && <UserDataLine title={'Caregiver Note'} userData={row?.CaregiverNote ?? '-'} bottomBorder />}
+                            <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>{t('profile.infoTable.headers.medRecs')}</ThemedText>
+                            <UserDataLine title={t('profile.infoTable.fields.RSD')} userData={row?.RecentScreenDate?.split('T')[0] ?? 'YYYY-MM-DD'} topBorder />
+                            <UserDataLine title={t('profile.infoTable.fields.RSI')} userData={row?.RecentScreenInfo ?? '-'} />
+                            <UserDataLine title={t('profile.infoTable.fields.caregiverID')} userData={row?.CaregiverID ?? '-'} bottomBorder={!(medInfo?.CaregiverID?.trim() && medInfo?.CaregiverNote?.trim())} />
+                            {(medInfo?.CaregiverID?.trim() && medInfo?.CaregiverNote?.trim()) && <UserDataLine title={t('profile.infoTable.fields.careNote')} userData={row?.CaregiverNote ?? '-'} bottomBorder />}
                         </View>
 
 
@@ -638,7 +642,7 @@ const Profile = () => {
                         {/* Button to 'handle the editing of user info */}
                         <ThemedButton primary onPress={handleEditPress}>
                             <Text style={{ color: 'white', textAlign: 'center', fontWeight: 500, fontSize: 16 }}>
-                                Edit health information?
+                                {t('profile.buttons.editBtn')}
                             </Text>
                         </ThemedButton>
 
@@ -649,7 +653,7 @@ const Profile = () => {
                             title
                             style={styles.heading}
                         >
-                            Need to find assistance?
+                            {t('profile.headers.assistPrompt')}
                         </ThemedText>
                         <View
                         style={[styles.mapsPressableBtns, {backgroundColor: theme.navBackground}]}
@@ -677,7 +681,7 @@ const Profile = () => {
                                         }
                                     ]}
                                 >
-                                    Pharmacy
+                                    {t('profile.buttons.pharmBtn')}
                                 </Text>
                             </ThemedButton>
 
@@ -701,7 +705,7 @@ const Profile = () => {
                                         }
                                     ]}
                                 >
-                                    Hospital
+                                    {t('profile.buttons.hospitalBtn')}
                                 </Text>
                             </ThemedButton>
                             <ThemedButton
@@ -726,7 +730,7 @@ const Profile = () => {
                                         }
                                     ]}
                                 >
-                                    Clinic
+                                    {t('profile.buttons.clinicBtn')}
                                 </Text>
                             </ThemedButton>
                         </View>
@@ -764,7 +768,7 @@ const Profile = () => {
                                 <ThemedText
                                     style={styles.heading}
                                 >
-                                    Find nearby {location}
+                                    {t('profile.misc.findEmbed')}
                                 </ThemedText>
                             </View>
                         </Pressable>
@@ -773,7 +777,7 @@ const Profile = () => {
 
                         {/* Emergency phone number section */}
                         <ThemedText title style={[styles.heading, {marginVertical: 15}]}>
-                            CALL EMERGENCY CONTACT
+                            {t('profile.headers.callPrompt')}
                         </ThemedText>
 
                         <ThemedButton
@@ -807,7 +811,7 @@ const Profile = () => {
                                     {/* I wanted to make this as compact as <UserDataLine/> but failed miserably */}
                                     <View style={[styles.modalView, {backgroundColor: theme.navBackground}]}>
                                         <Text style={{ color: theme.text, textAlign: 'center', fontSize: 20, fontWeight: 500 }}>
-                                            Edit Health information
+                                            {t('profile.buttons.editBtn')}
                                         </Text>
                                         <Spacer height={10}/>
                                         <View
@@ -823,34 +827,34 @@ const Profile = () => {
                                                     name={showBaseInfo ? 'chevron-up' : 'chevron-down'}
                                                 />
                                                 <ThemedText title style={{fontWeight:450}}>
-                                                    Personal Information
+                                                    {t('profile.infoTable.headers.userInfo')}
                                                 </ThemedText>
                                             </Pressable>
                                             {showBaseInfo &&
                                                 <>
                                                     <UserEditLine
-                                                        title={'Full Name:'}
+                                                        title={t('profile.infoTable.fields.fullName')}
                                                         placeholderText={'...'}
                                                         value={formData.FullName}
                                                         onChangeText={(text) => setFormData((prev) => ({ ...prev, FullName: text }))}
                                                         setKey={setKeyUp}
                                                     />
                                                     <UserEditLine
-                                                        title={'Date of Birth:'}
+                                                        title={t('profile.infoTable.fields.DOB')}
                                                         placeholderText={'...'}
                                                         value={formData.DOB}
                                                         onChangeText={(text) => setFormData((prev) => ({ ...prev, DOB: text }))}
                                                         setKey={setKeyUp}
                                                     />
                                                     <UserEditLine
-                                                        title={'Address:'}
+                                                        title={t('profile.infoTable.fields.address')}
                                                         placeholderText={'...'}
                                                         value={formData.Address}
                                                         onChangeText={(text) => setFormData((prev) => ({ ...prev, Address: text }))}
                                                         setKey={setKeyUp}
                                                     />
                                                     <UserEditLine
-                                                        title={'Personal Number:'}
+                                                        title={t('profile.infoTable.fields.personalNum')}
                                                         placeholderText={'...'}
                                                         value={formData.PhoneNum}
                                                         onChangeText={(text) => setFormData((prev) => ({ ...prev, PhoneNum: text }))}
@@ -858,7 +862,7 @@ const Profile = () => {
                                                         maxLength={16}
                                                     />
                                                     <UserEditLine
-                                                        title={'Emergency Contact:'}
+                                                        title={t('profile.infoTable.fields.emergNum')}
                                                         placeholderText={'...'}
                                                         value={formData.EmergNum}
                                                         onChangeText={(text) => setFormData((prev) => ({ ...prev, EmergNum: text }))}
@@ -881,41 +885,41 @@ const Profile = () => {
                                                     name={showMidInfo ? 'chevron-up' : 'chevron-down'}
                                                 />
                                                 <ThemedText title style={{fontWeight:450}}>
-                                                    Medical Information
+                                                    {t('profile.infoTable.headers.medInfo')}
                                                 </ThemedText>
                                             </Pressable>
                                             {showMidInfo &&
                                                 <>
                                                     <UserEditLine
-                                                        title={'Blood Type:'}
+                                                        title={t('profile.infoTable.fields.bloodType')}
                                                         placeholderText={'...'}
                                                         value={formData.BloodType}
                                                         onChangeText={(text) => setFormData((prev) => ({ ...prev, BloodType: text }))}
                                                         setKey={setKeyUp}
                                                     />
                                                     <UserEditLine
-                                                        title={'Genetic Conditions:'}
+                                                        title={t('profile.infoTable.fields.genCond')}
                                                         placeholderText={'...'}
                                                         value={formData.GeneticCond}
                                                         onChangeText={(text) => setFormData((prev) => ({ ...prev, GeneticCond: text }))}
                                                         setKey={setKeyUp}
                                                     />
                                                     <UserEditLine
-                                                        title={'Chronic Illnesses:'}
+                                                        title={t('profile.infoTable.fields.chronIll')}
                                                         placeholderText={'...'}
                                                         value={formData.ChronicIll}
                                                         onChangeText={(text) => setFormData((prev) => ({ ...prev, ChronicIll: text }))}
                                                         setKey={setKeyUp}
                                                     />
                                                     <UserEditLine
-                                                        title={'Allergies: '}
+                                                        title={t('profile.infoTable.fields.allergies')}
                                                         placeholderText={'...'}
                                                         value={formData.Allergies}
                                                         onChangeText={(text) => setFormData((prev) => ({ ...prev, Allergies: text }))}
                                                         setKey={setKeyUp}
                                                     />
                                                     <UserEditLine
-                                                        title={'Medications:'}
+                                                        title={t('profile.infoTable.fields.medication')}
                                                         placeholderText={'...'}
                                                         value={formData.Medications}
                                                         onChangeText={(text) => setFormData((prev) => ({ ...prev, Medications: text }))}
@@ -937,27 +941,27 @@ const Profile = () => {
                                                     name={showEndInfo ? 'chevron-up' : 'chevron-down'}
                                                 />
                                                 <ThemedText title style={{fontWeight:450}}>
-                                                    Medical Records
+                                                    {t('profile.infoTable.headers.medRecs')}
                                                 </ThemedText>
                                             </Pressable>
                                             {showEndInfo &&
                                                 <>
                                                     <UserEditLine
-                                                        title={'Last Screening Date:'}
+                                                        title={t('profile.infoTable.fields.RSD')}
                                                         placeholderText={'...'}
                                                         value={formData.RecentScreenDate}
                                                         onChangeText={(text) => setFormData((prev) => ({ ...prev, RecentScreenDate: text }))}
                                                         setKey={setKeyUp}
                                                     />
                                                     <UserEditLine
-                                                        title={'Last Screening Info:'}
+                                                        title={t('profile.infoTable.fields.RSI')}
                                                         placeholderText={'...'}
                                                         value={formData.RecentScreenInfo}
                                                         onChangeText={(text) => setFormData((prev) => ({ ...prev, RecentScreenInfo: text }))}
                                                         setKey={setKeyUp}
                                                     />
                                                     <UserEditLine
-                                                        title={'Caregiver ID:'}
+                                                        title={t('profile.infoTable.fields.caregiverID')}
                                                         placeholderText={'...'}
                                                         value={formData.CaregiverID}
                                                         onChangeText={(text) => setFormData((prev) => ({ ...prev, CaregiverID: text }))}
@@ -971,7 +975,7 @@ const Profile = () => {
                                                             <Text
                                                                 style={{color: 'white', fontWeight: 600, fontSize: 16, textAlign: 'center'}}
                                                             >
-                                                                Clear Caregiver Note
+                                                                {t("profile.buttons.clearCareNote")}
                                                             </Text>
                                                         </ThemedButton>
                                                     }
@@ -984,8 +988,8 @@ const Profile = () => {
                                         {/*custom set of modal buttons. Way too unnecessary, but I proved to myself I can make them. */}
                                         <ModalButtons
                                             styleSub={{backgroundColor: Colors.primary}}
-                                            subText={'Submit'}
-                                            cancText={'Cancel'}
+                                            subText={t('common.submit')}
+                                            cancText={t('common.cancel')}
                                             onSubmit={handlerSubmitPress}
                                             onCancel={handleCancelPress}
                                         />
@@ -1005,7 +1009,7 @@ const Profile = () => {
                     <>
                         {/* adding dependents by ID */}
                         <ThemedText title style={[styles.heading, {fontSize: 20, marginVertical: 5}]}>
-                            Add Patient ID
+                            {t('profile.headers.addPatID')}
                         </ThemedText>
 
                         <View
@@ -1031,7 +1035,7 @@ const Profile = () => {
                                 <Text
                                     style={{textAlign:'center', color: 'white', fontSize: 16, fontWeight: 600}}
                                 >
-                                    Add Patient
+                                    {t('profile.buttons.addPatientBtn')}
                                 </Text>
                             </ThemedButton>
                         </View>
@@ -1042,7 +1046,7 @@ const Profile = () => {
 
                         {/* displaying 'patients' via expandable cards */}
                         <ThemedText title style={[styles.heading, {fontSize: 24, fontWeight: 800, marginBottom: 5}]}>
-                            Patients
+                            {t('profile.headers.patientHeader')}
                         </ThemedText>
 
                         <ThemedHr/>
@@ -1051,7 +1055,7 @@ const Profile = () => {
 
                         {depArr.length === 0 &&
                             <ThemedText>
-                                No Patients...
+                                {t('profile.misc.noPatientsTxt')}
                             </ThemedText>
                         }
 
@@ -1094,34 +1098,34 @@ const Profile = () => {
                                 >
                                     <View style={[styles.section, { backgroundColor: theme.navBackground, width: '100%', paddingHorizontal: 0 }]}>
                                         <ThemedText title style={{ fontWeight: 'bold', fontSize: 20 }}>
-                                            {selectedDep?.FullName} Information
+                                            {selectedDep?.FullName} {t('profile.infoTable.headers.namedInfo')}
                                         </ThemedText>
                                         <ThemedHr width={'75%'} style={{borderWidth: 1.5, marginVertical: 5}}/>
                                         <Spacer height={20} />
 
                                         {/* Well well well.. Anyway. Basic UserData Lines to display the medical information without a trillion lines of code in one page. Ergo, 'modularity' */}
                                         {/*vvvvvvvvv To be automated and tied to user-info db/json */}
-                                        <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>Personal Information</ThemedText>
-                                        <UserDataLine title={'Full name'} userData={selectedDep?.FullName ?? '-'} topBorder />
-                                        <UserDataLine title={'Date of Birth'} userData={selectedDep?.DOB?.split('T')[0] ?? 'YYYY-MM-DD'} />
-                                        <UserDataLine title={'Address'} userData={selectedDep?.Address ?? '-'} />
-                                        <UserDataLine title={'Personal Number'} userData={selectedDep?.PhoneNum ?? '-'} placeholderText={'-'}/>
-                                        <UserDataLine title={'Emergency Contact'} userData={selectedDep?.EmergNum ?? DEFAULT_CONTACT} placeholderText={DEFAULT_CONTACT} bottomBorder/>
+                                        <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>{t('profile.infoTable.headers.persInfo')}</ThemedText>
+                                        <UserDataLine title={t('profile.infoTable.fields.fullName')} userData={selectedDep?.FullName ?? '-'} topBorder />
+                                        <UserDataLine title={t('profile.infoTable.fields.DOB')} userData={selectedDep?.DOB?.split('T')[0] ?? 'YYYY-MM-DD'} />
+                                        <UserDataLine title={t('profile.infoTable.fields.address')} userData={selectedDep?.Address ?? '-'} />
+                                        <UserDataLine title={t('profile.infoTable.fields.personalNum')} userData={selectedDep?.PhoneNum ?? '-'} placeholderText={'-'}/>
+                                        <UserDataLine title={t('profile.infoTable.fields.emergNum')} userData={selectedDep?.EmergNum ?? DEFAULT_CONTACT} placeholderText={DEFAULT_CONTACT} bottomBorder/>
                                         <Spacer height={20} />
-                                        <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>Medical Information</ThemedText>
-                                        <UserDataLine title={'Blood Type'} userData={selectedDep?.BloodType ?? '-'} topBorder />
-                                        <UserDataLine title={'Genetic Conditions'} userData={selectedDep?.GeneticCond ?? '-'} />
-                                        <UserDataLine title={'Chronic Illness'} userData={selectedDep?.ChronicIll ?? '-'} />
-                                        <UserDataLine title={'Allergies'} userData={selectedDep?.Allergies ?? '-'} />
-                                        <UserDataLine title={'Medication'} userData={selectedDep?.Medications ?? '-'} bottomBorder/>
+                                        <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>{t('profile.infoTable.headers.medInfo')}</ThemedText>
+                                        <UserDataLine title={t('profile.infoTable.fields.bloodType')} userData={selectedDep?.BloodType ?? '-'} topBorder />
+                                        <UserDataLine title={t('profile.infoTable.fields.genCond')} userData={selectedDep?.GeneticCond ?? '-'} />
+                                        <UserDataLine title={t('profile.infoTable.fields.chronIll')} userData={selectedDep?.ChronicIll ?? '-'} />
+                                        <UserDataLine title={t('profile.infoTable.fields.allergies')} userData={selectedDep?.Allergies ?? '-'} />
+                                        <UserDataLine title={t('profile.infoTable.fields.medication')} userData={selectedDep?.Medications ?? '-'} bottomBorder/>
                                         <Spacer height={20} />
-                                        <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>Medical Records</ThemedText>
-                                        <UserDataLine title={'Recent Screening Date'} userData={selectedDep?.RecentScreenDate?.split('T')[0] ?? 'YYYY-MM-DD'} topBorder />
-                                        <UserDataLine title={'Recent Screening Info'} userData={selectedDep?.RecentScreenInfo ?? '-'} />
-                                        <UserDataLine title={'Caregiver ID'} userData={selectedDep?.CaregiverID ?? '-'} bottomBorder/>
+                                        <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>{t('profile.infoTable.headers.medRecs')}</ThemedText>
+                                        <UserDataLine title={t('profile.infoTable.fields.RSD')} userData={selectedDep?.RecentScreenDate?.split('T')[0] ?? 'YYYY-MM-DD'} topBorder />
+                                        <UserDataLine title={t('profile.infoTable.fields.RSI')} userData={selectedDep?.RecentScreenInfo ?? '-'} />
+                                        <UserDataLine title={t('profile.infoTable.fields.caregiverID')} userData={selectedDep?.CaregiverID ?? '-'} bottomBorder/>
                                     </View>
 
-                                    <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>Contact {selectedDep?.FullName}</ThemedText>
+                                    <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>{t('profile.infoTable.headers.namedContact')} {selectedDep?.FullName}</ThemedText>
 
                                     <View
                                         style={[styles.fieldView, {borderColor: theme.background, backgroundColor: theme.background}]}
@@ -1136,7 +1140,7 @@ const Profile = () => {
                                                 name={showDepNote ? 'chevron-up' : 'chevron-down'}
                                             />
                                             <ThemedText title style={{fontWeight:450}}>
-                                                Send Note to {selectedDep?.FullName}
+                                                {t('profile.infoTable.headers.sendPatientNote')} {selectedDep?.FullName}
                                             </ThemedText>
                                         </Pressable>
                                         {showDepNote &&
@@ -1146,7 +1150,7 @@ const Profile = () => {
                                                     styleView={{height: 200}}
                                                     styleTxt={{width: '25%'}}
                                                     styleInput={{width: '70%', height: '95%', textAlignVertical: 'top'}}
-                                                    title={`Send Note to ${selectedDep?.FullName}:`}
+                                                    title={`${t('profile.infoTable.headers.sendPatientNote')} ${selectedDep?.FullName}:`}
                                                     placeholderText={'...'}
                                                     value={depNote}
                                                     onChangeText={setDepNote}
@@ -1159,7 +1163,7 @@ const Profile = () => {
                                                     <Text
                                                         style={{color: 'white', fontWeight: 600, fontSize: 16, textAlign: 'center'}}
                                                     >
-                                                        Send Note
+                                                        {t('profile.buttons.sendNote')}
                                                     </Text>
                                                 </ThemedButton>
                                             </>
@@ -1182,7 +1186,7 @@ const Profile = () => {
                                         <ThemedText
                                             style={{fontSize: 15, fontWeight: 450, marginLeft: 10}}
                                         >
-                                            Call {selectedDep?.FullName}
+                                            {t('profile.infoTable.fields.callPatient')} {selectedDep?.FullName}
                                         </ThemedText>
 
                                         <ThemedButton
@@ -1206,7 +1210,7 @@ const Profile = () => {
                                                 name={'call'}
                                             />
                                             <Text title style={{color: 'white', fontWeight: 800, fontSize: 16}}>
-                                                 {(selectedDep?.PhoneNum?.trim()) ? selectedDep?.PhoneNum : 'No number found'}
+                                                 {(selectedDep?.PhoneNum?.trim()) ? selectedDep?.PhoneNum : t('profile.misc.number404')}
                                             </Text>
                                         </ThemedButton>
 
@@ -1228,7 +1232,7 @@ const Profile = () => {
                                             <Text
                                                 style={styles.announcement}
                                             >
-                                                {`\nThe note to ${selectedDep?.FullName} was sent Successfully\n`}
+                                                {`\n${t('profile.successMsg.noteSentPrefix')} ${selectedDep?.FullName} ${t('profile.successMsg.noteSentSuffix')}\n`}
                                             </Text>
                                         </Pressable>
                                     </Modal>}
@@ -1236,11 +1240,11 @@ const Profile = () => {
 
                                     <Spacer/>
 
-                                    <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>Record Options</ThemedText>
+                                    <ThemedText title style={{marginVertical:5, fontWeight: 500, fontSize: 16}}>{t('profile.infoTable.headers.recOptions')}</ThemedText>
 
                                     <ModalButtons
-                                        subText={'Remove User'}
-                                        cancText={'Exit'}
+                                        subText={t('profile.buttons.rmUser')}
+                                        cancText={t('common.exit')}
                                         onSubmit={()=>{handleDelDep(selectedDep?.$id)}}
                                         onCancel={()=>{setDepModalVisible(false)}}
 
@@ -1267,16 +1271,16 @@ const Profile = () => {
                                 >
                                     <View style={[styles.section, { backgroundColor: theme.navBackground }]}>
                                         <ThemedText title style={{ fontWeight: 'bold', fontSize: 20, color: Colors.warning }}>
-                                            Could not find {missingDep?.name}
+                                            {t('profile.errMsg.missingPatTitle')}
                                         </ThemedText>
                                         <ThemedHr width={'75%'} style={{borderWidth: 1.5, marginVertical: 5}}/>
                                         <ThemedText title style={{fontSize: 16}}>
-                                            Delete record of dependent: "{missingDep?.name}"?
+                                            {t('profile.errMsg.missingPatBody')} "{missingDep?.name}"?
                                         </ThemedText>
                                     </View>
                                     <ModalButtons
-                                        subText={'Delete'}
-                                        cancText={'Exit'}
+                                        subText={t('common.del')}
+                                        cancText={t('common.cancel')}
                                         onSubmit={()=>{handleDelDep(missingDep?.id)}}
                                         onCancel={()=>{setDelDepWin(false); setMissingDep(null)}}
 

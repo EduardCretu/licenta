@@ -1,12 +1,5 @@
 // File exporting constants, be it objects arrays or otherwise. Don't judge me its O(1)
 
-const notificationTypeData = [
-    { label: '...', value: null },
-    { label: 'One Time', value: 5 },
-    { label: 'Daily', value: 2 },
-    { label: 'Weekly', value: 3 },
-    { label: 'Monthly', value: 4 },
-]
 const minuteData = [
     { label: '0', value: 0 },
     { label: '1', value: 1 },
@@ -96,39 +89,7 @@ const hourData = [
     { label: '22', value: 22 },
     { label: '23', value: 23 },
 ]
-const weekdayData = [
-    { label: 'Sunday', value: 1 },
-    { label: 'Monday', value: 2 },
-    { label: 'Tuesday', value: 3 },
-    { label: 'Wednesday', value: 4 },
-    { label: 'Thursday', value: 5 },
-    { label: 'Friday', value: 6 },
-    { label: 'Saturday', value: 7 },
-]
-const weekdayDataString = [
-              'Sunday',
-              'Monday',
-              'Tuesday',
-              'Wednesday',
-              'Thursday',
-              'Friday',
-              'Saturday'
-            ];
 
-const monthData = [
-    { label: 'January', value: 1 },
-    { label: 'February', value: 2 },
-    { label: 'March', value: 3 },
-    { label: 'April', value: 4 },
-    { label: 'May', value: 5 },
-    { label: 'June', value: 6 },
-    { label: 'July', value: 7 },
-    { label: 'August', value: 8 },
-    { label: 'September', value: 9 },
-    { label: 'October', value: 10 },
-    { label: 'November', value: 11 },
-    { label: 'December', value: 12 },
-]
 const monthlyDayData = [
     { label: '1', value: 1 },
     { label: '2', value: 2 },
@@ -162,4 +123,11 @@ const monthlyDayData = [
     { label: '30', value: 30 },
     { label: '31', value: 31 },
 ]
-export { notificationTypeData, minuteData, hourData, weekdayData, weekdayDataString, monthData, monthlyDayData }
+
+const langs = [
+    { label: "English", value : 'en'},
+    { label: "Română", value : 'ro'}
+]
+
+
+export { minuteData, hourData, monthlyDayData, langs }

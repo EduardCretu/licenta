@@ -1,5 +1,6 @@
 import { StyleSheet, View, Switch, Text, TouchableWithoutFeedback, Keyboard, ScrollView, Pressable, Modal, KeyboardAvoidingView, Platform, Alert } from 'react-native'
 // context-hook imports
+import { useTranslation } from 'react-i18next'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useUser } from '../../contexts/UserContext'
 import { useMedInfo } from '../../contexts/MedInfoContext'
@@ -15,13 +16,16 @@ import UserEditLine from '../../components/UserEditLine'
 import SecuredUserEditLine from '../../components/SecuredUserEditLine'
 import ModalButtons from '../../components/ModalButtons'
 import ThemedHr from '../../components/ThemedHr'
+import ThemedDropdownComponent from "../../components/ThemedDropdown"
 // color related imports
 import { Colors } from '../../constants/colors'
+import { langs } from '../../constants/dropdownFields'
 
 // settings tab page tasked with handling account management
 const Settings = () => {
     // context hook related consts
-    const { isDark, toggleTheme, theme } = useTheme()
+    const { t } = useTranslation()
+    const { isDark, toggleTheme, theme, locale, changeLanguage } = useTheme()
     const { user, logout, deleteAccount, updateUserEmail, updateUserPassword } = useUser()
     const { deleteMedInfo, updateMedInfo, medInfo, fetchMedInfoById } = useMedInfo()
     const { deleteDepInfo, ensureDepInfo } = useDepInfo()
@@ -44,11 +48,14 @@ const Settings = () => {
     const [optInWin, setOptInWin] = useState(false)
     const [optOutWin, setOptOutWin] = useState(false)
 
+    const [currentLang, setCurrentLang] = useState(locale)
+
     // CAREGIVER FEATURE RELATED
 
     // setting the email value to user's email on first render and every time user's email field changes.
     useEffect(()=>{
         setEmail(user?.email ?? '')
+        //console.log(currentLanguage)
     },[user?.email])
     // .isCaregiver value & setting it to true/false exclusively
     useEffect(() => {
@@ -128,11 +135,11 @@ const Settings = () => {
         setError('');
         // manual checks to cut down on failed appwrite API calls
         if (!email.trim()) {
-            setError('Please enter an email.');
+            setError(t("settings.errMsg.updateEmail.email"));
             return;
         }
         if (!emPass.trim()) {
-            setError('Please enter your password.');
+            setError(t("settings.errMsg.updateEmail.passwd"));
             return;
         }
         // try updating && reset fields + set announcement for user
@@ -140,7 +147,7 @@ const Settings = () => {
             await updateUserEmail(email.trim(), emPass);
             setChangeEmailWin(false);
             resetEmailModal();
-            setAnnouncement('Email')
+            setAnnouncement(t("settings.announcements.prefix.email"))
         } catch (err) {
             // console.log(err);
             setError(getErrorMessage(err));
@@ -151,15 +158,15 @@ const Settings = () => {
         setError('');
         // again, manual checks to cut down on traffic towards appwrite project
         if (!pass.trim()) {
-            setError('Please enter your current password.');
+            setError(t("settings.errMsg.updatePass.passwd"));
             return;
         }
         if (!newPass.trim() || !newPassConf.trim()) {
-            setError('Please fill in both new password fields.');
+            setError(t("settings.errMsg.updatePass.newPasswd"));
             return;
         }
         if (newPass !== newPassConf) {
-            setError('New passwords do not match.');
+            setError(t("settings.errMsg.updatePass.passwdNoMatch"));
             return;
         }
         // try updating && reset fields + set announcement for user
@@ -167,7 +174,7 @@ const Settings = () => {
             await updateUserPassword(pass, newPass);
             setChangePassWin(false);
             resetPasswordModal();
-            setAnnouncement('Password')
+            setAnnouncement(t("settings.announcements.prefix.passwd"))
         } catch (err) {
             // console.log(err);
             setError(getErrorMessage(err));
@@ -213,19 +220,19 @@ const Settings = () => {
                     <Spacer/>
 
                     <ThemedText title style={styles.heading}>
-                        Settings
+                        {t("settings.headers.pageName")}
                     </ThemedText>
 
                     <Spacer />
 
                     <ThemedText style={styles.heading}>
-                        App Options
+                        {t("settings.headers.appOpt")}
                     </ThemedText>
 
                     {/* Dark mode switch*/}
                     <View style={[styles.container, {backgroundColor: theme.uiBackground}]}>
                         <ThemedText style={[styles.label, {paddingLeft: 10}]}>
-                            {isDark ? 'Dark Mode' : 'Light Mode'}
+                            {isDark ? t("settings.darkMode.dark") : t("settings.darkMode.light")}
                         </ThemedText>
 
                         <Switch
@@ -236,14 +243,34 @@ const Settings = () => {
                         />
                     </View>
 
+                    <View style={[styles.container, {backgroundColor: theme.uiBackground}]}>
+                        <ThemedText style={[styles.label, {paddingLeft: 10}]}>
+                            {t('current_language')}
+                        </ThemedText>
 
-                    <ThemedText style={styles.heading}>Account Info</ThemedText>
+                        <ThemedDropdownComponent
+                            data={langs}
+                            value={currentLang}
+                            mode={'modal'}
+                            onChange={(newValue, item) => {
+                                setCurrentLang(newValue)
+                                changeLanguage(newValue)
+                            }}
+                            styleDropdown={{width: '50%', padding: 0, marginRight:0}}
+                            styleBaseContainer={{padding:5}}
+                            stylePlaceholder={{paddingLeft: 20}}
+                            styleSelectedText={{paddingLeft: 20}}
+                        />
+                    </View>
+
+
+                    <ThemedText style={styles.heading}>{t("settings.headers.accInfo")}</ThemedText>
 
                     <ThemedHr style={{marginVertical: 5}}/>
 
                     {/*fields with user's account information*/}
                     <UserEditLine
-                        title={'User Email:'}
+                        title={t("settings.settingsFields.email")}
                         placeholderText={infoRev ? user?.email : `......@${user?.email?.split('@')[1]}`}
                         editable={false}
                         styleView={{width: '95%'}}
@@ -251,7 +278,7 @@ const Settings = () => {
                         styleInput={{backgroundColor: theme.uiBackground, borderColor: theme.uiBackground, fontSize: 14 }}
                     />
                     <UserEditLine
-                        title={'Account ID:'}
+                        title={t("settings.settingsFields.accID")}
                         placeholderText={infoRev ? user?.$id : `${user?.$id?.slice(0, 4)}......${user?.$id?.slice(-4)}`}
                         editable={false}
                         styleView={{width: '95%'}}
@@ -259,7 +286,7 @@ const Settings = () => {
                         styleInput={{backgroundColor: theme.uiBackground, borderColor: theme.uiBackground, fontSize: 14 }}
                     />
                     <UserEditLine
-                        title={'Account Creation Date:'}
+                        title={t("settings.settingsFields.accDate")}
                         placeholderText={infoRev ? user?.$createdAt?.split('T')[0] : `${user?.$createdAt?.slice(0, 4)}-MM-DD`}
                         editable={false}
                         styleView={{width: '95%'}}
@@ -271,14 +298,14 @@ const Settings = () => {
                         onPress={() => {setInfoRev(!infoRev)}}
                     >
                         <ThemedText style={{fontStyle: 'italic'}}>
-                            {infoRev ? 'Hide Account Information' : 'Reveal Account Information'}
+                            {infoRev ? t("settings.settingsFields.reveal.tru") : t("settings.settingsFields.reveal.fals")}
                         </ThemedText>
                     </Pressable>
 
                     <Spacer height={30}/>
 
                     <ThemedText style={styles.heading}>
-                        Account Options
+                        {t("settings.headers.accOpt")}
                     </ThemedText>
 
                     <ThemedHr style={{marginVertical: 5}}/>
@@ -286,7 +313,7 @@ const Settings = () => {
                     {/* button to open modal responsible for email update*/}
                     <View style={[styles.container, {backgroundColor: theme.uiBackground}]}>
                         <ThemedText style={[styles.label, {paddingLeft: 10, fontWeight: 600}]}>
-                            Account Registered As Caregiver
+                            {t("settings.settingsFields.caregiverReg")}
                         </ThemedText>
 
                         <Switch
@@ -312,7 +339,7 @@ const Settings = () => {
                                 fontWeight: 500
                                 }}
                         >
-                            Change Email
+                            {t("settings.buttons.changeEmailBtn")}
                         </Text>
                     </ThemedButton>
 
@@ -332,14 +359,14 @@ const Settings = () => {
                                 fontWeight: 500
                                 }}
                         >
-                            Change Password
+                            {t("settings.buttons.changePasswdBtn")}
                         </Text>
                     </ThemedButton>
 
                     <Spacer/>
 
                     <ThemedText style={[styles.heading, {marginBottom: 10}]}>
-                        Logout
+                        {t("settings.headers.logout")}
                     </ThemedText>
 
                     <ThemedHr style={{marginVertical: 15}}/>
@@ -349,14 +376,14 @@ const Settings = () => {
                         style={{marginBottom:5, width: '60%', height: '50', backgroundColor: '#c05151'}}
                         onPress={() => {setLogWin(true)}}>
                         <Text style={{color: 'white', textAlign: 'center', fontSize: 16, fontWeight: 500}}>
-                            Exit
+                            {t("settings.buttons.logoutBtn")}
                         </Text>
                     </ThemedButton>
 
                     <Spacer/>
 
                     <ThemedText style={[styles.heading, {marginBottom: 10}]}>
-                        Terminate Account
+                        {t("settings.headers.terminate")}
                     </ThemedText>
 
                     <ThemedHr style={{marginBottom: 15}}/>
@@ -367,7 +394,7 @@ const Settings = () => {
                         style={{marginBottom:5, width: '60%', height: '50'}}
                         onPress={() => {setDelWin(true)}}>
                         <Text style={{color: 'white', textAlign: 'center', fontSize: 16, fontWeight: 500}}>
-                            DELETE ACCOUNT
+                            {t("settings.buttons.terminateBtn")}
                         </Text>
                     </ThemedButton>
                     <Spacer/>
@@ -392,11 +419,11 @@ const Settings = () => {
                                 ]}
                             >
                                 <ThemedText style={[styles.modalText, { fontSize: 25 }]}>
-                                    Change Email
+                                    {t("settings.modals.email.title")}
                                 </ThemedText>
 
                                 <UserEditLine
-                                    title={'Email:'}
+                                    title={t("settings.modals.email.email")}
                                     placeholderText={'...'}
                                     value={email}
                                     onChangeText={(text) => setEmail(text)}
@@ -406,7 +433,7 @@ const Settings = () => {
                                 />
 
                                 <SecuredUserEditLine
-                                    title="Password:"
+                                    title={t("settings.modals.email.passwd")}
                                     placeholderText="Confirm Password"
                                     value={emPass}
                                     onChangeText={(text) => setEmPass(text)}
@@ -420,8 +447,8 @@ const Settings = () => {
                                 {/* button section with delete and cancel options */}
                                 <ModalButtons
                                     styleSub={{backgroundColor: Colors.primary}}
-                                    subText={'Change'}
-                                    cancText={'Cancel'}
+                                    subText={t("common.change")}
+                                    cancText={t("common.cancel")}
                                     onSubmit={handleUpdateEmail}
                                     onCancel={()=>{
                                         setChangeEmailWin(false)
@@ -453,21 +480,21 @@ const Settings = () => {
                                     Change Password
                                 </ThemedText>
                                 <SecuredUserEditLine
-                                    title={'Old\nPassword:'}
+                                    title={t("settings.modals.passwd.oldPasswd")}
                                     placeholderText={"Old Password"}
                                     value={pass}
                                     onChangeText={(text) => setPass(text)}
                                     iconSize={16}
                                 />
                                 <SecuredUserEditLine
-                                    title={'New\nPassword:'}
+                                    title={t("settings.modals.passwd.newPasswd")}
                                     placeholderText={"New Password"}
                                     value={newPass}
                                     onChangeText={(text) => setNewPass(text)}
                                     iconSize={16}
                                 />
                                 <SecuredUserEditLine
-                                    title={'Confirm Password:'}
+                                    title={t("settings.modals.passwd.confirmPasswd")}
                                     placeholderText={"Confirm New Password"}
                                     value={newPassConf}
                                     onChangeText={(text) => setNewPassConf(text)}
@@ -479,8 +506,8 @@ const Settings = () => {
                                 {/* button section with delete and cancel options */}
                                 <ModalButtons
                                     styleSub={{backgroundColor: Colors.primary}}
-                                    subText={'Change'}
-                                    cancText={'Cancel'}
+                                    subText={t("common.change")}
+                                    cancText={t("common.cancel")}
                                     onSubmit={handleUpdatePass}
                                     onCancel={()=>{
                                         setChangePassWin(false)
@@ -506,12 +533,12 @@ const Settings = () => {
                                 ]}
                             >
                                 <ThemedText style={[styles.modalText, { fontSize: 25, fontWeight: 800 }]}>
-                                    Log Out?
+                                    {t("settings.headers.logout")}
                                 </ThemedText>
                                 {/* button section with delete and cancel options */}
                                 <ModalButtons
-                                    subText={'Log Out'}
-                                    cancText={'Cancel'}
+                                    subText={t("settings.buttons.logoutBtn")}
+                                    cancText={t("common.cancel")}
                                     onSubmit={logout}
                                     onCancel={()=>{setLogWin(false)}}
                                 />
@@ -533,13 +560,13 @@ const Settings = () => {
                                 ]}
                             >
                                 <ThemedText style={[styles.modalText, { fontSize: 25, fontWeight: 800, color: Colors.warning }]}>
-                                    Delete Account?
+                                    {t("settings.modals.delAcc.header")}
                                 </ThemedText>
                                 <ThemedText style={{fontStyle: 'italic', fontWeight: 500}}>
-                                     This action is permanent.
+                                     {t("settings.modals.delAcc.title")}
                                 </ThemedText>
                                 <ThemedText style={{fontStyle: 'italic', marginBottom: 5}}>
-                                     Both the account and its data will be deleted
+                                     {t("settings.modals.delAcc.body")}
                                 </ThemedText>
                                 {/* button section with delete and cancel options */}
                                 <ModalButtons
@@ -568,7 +595,7 @@ const Settings = () => {
                             <Text
                                 style={styles.announcement}
                             >
-                                {`\n${announcement} changed Succesfully!\n`}
+                                {`\n${announcement} ${t("settings.announcements.suffix")}!\n`}
                             </Text>
                         </Pressable>
                     </Modal>}
@@ -590,17 +617,17 @@ const Settings = () => {
                             >
                                 <View style={[styles.section, { backgroundColor: theme.navBackground }]}>
                                     <ThemedText title style={{ fontWeight: 'bold', fontSize: 20, color: Colors.primary }}>
-                                        Register as a Caregiver?
+                                        {t("settings.modals.caregiver.optIn.title")}
                                     </ThemedText>
                                     <ThemedHr width={'75%'} style={{borderWidth: 1.5, marginVertical: 5}}/>
                                     <ThemedText title style={{fontSize: 16}}>
-                                        This will create your caregiver profile and allow you to manage dependents.
+                                        {t("settings.modals.caregiver.optIn.body")}
                                     </ThemedText>
                                 </View>
                                 <ModalButtons
                                     styleSub={{backgroundColor: Colors.primary}}
-                                    subText={'Opt In'}
-                                    cancText={'Cancel'}
+                                    subText={t("settings.modals.caregiver.optIn.optInBtn")}
+                                    cancText={t("common.cancel")}
                                     onSubmit={OptIn}
                                     onCancel={()=>{setOptInWin(false)}}
 
@@ -625,19 +652,19 @@ const Settings = () => {
                             >
                                 <View style={[styles.section, { backgroundColor: theme.navBackground }]}>
                                     <ThemedText title style={{ fontWeight: 'bold', fontSize: 20, color: Colors.warning }}>
-                                        Opt out as Caregiver?
+                                        {t("settings.modals.caregiver.optOut.title")}
                                     </ThemedText>
                                     <ThemedHr width={'75%'} style={{borderWidth: 1.5, marginVertical: 5}}/>
                                     <ThemedText title style={{fontSize: 16}}>
-                                        This will remove your caregiver profile and all dependent data.
+                                        {t("settings.modals.caregiver.optOut.title")}
                                     </ThemedText>
                                     <ThemedText title style={{fontSize: 16, fontWeight: 600, fontStyle: 'italic', color: Colors.warning}}>
-                                         This action cannot be undone.
+                                         {t("settings.modals.caregiver.optOut.warning")}
                                     </ThemedText>
                                 </View>
                                 <ModalButtons
-                                    subText={'Opt Out'}
-                                    cancText={'Cancel'}
+                                    subText={t("settings.modals.caregiver.optOut.optOutBtn")}
+                                    cancText={t("common.cancel")}
                                     onSubmit={OptOut}
                                     onCancel={()=>{setOptOutWin(false)}}
                                 />

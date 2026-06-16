@@ -10,9 +10,9 @@ import ModalButtons from '../../components/ModalButtons'
 import * as Notifications from 'expo-notifications';
 // color imports
 import { useTheme } from '../../contexts/ThemeContext';
+import { useTranslation } from "react-i18next";
 import { Colors } from '../../constants/colors';
 // import of an array of weekday names
-import { weekdayDataString } from '../../constants/dropdownFields';
 
 const Reminders = () => {
     const [notifications, setNotifications] = useState([]);
@@ -21,6 +21,17 @@ const Reminders = () => {
     const [detailWin, setDetailWin] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const { theme } = useTheme();
+    const { t } = useTranslation()
+
+    const weekdayDataString = [
+            t("create.dropdownFields.weeklyDays.sunday"),
+            t("create.dropdownFields.weeklyDays.monday"),
+            t("create.dropdownFields.weeklyDays.tuesday"),
+            t("create.dropdownFields.weeklyDays.wednesday"),
+            t("create.dropdownFields.weeklyDays.thursday"),
+            t("create.dropdownFields.weeklyDays.friday"),
+            t("create.dropdownFields.weeklyDays.saturday"),,
+        ]
 
     // Loads notifications from the OS if there are any
     const loadScheduledNotifications = async () => {
@@ -77,11 +88,11 @@ const Reminders = () => {
     const renderTriggerDetails = (trigger) => {
         return (
             <>
-                <ThemedText>Type: {trigger.type}</ThemedText>
-                {trigger.type === 'weekly' && <ThemedText>Weekday: {weekdayDataString[trigger.weekday]}</ThemedText>}
-                {trigger.type === 'monthly' && <ThemedText>Day: {trigger.day}</ThemedText>}
-                {trigger.type !== 'date' && <ThemedText>Time: {trigger.hour}:{String(trigger.minute).padStart(2, '0')}</ThemedText>}
-                {trigger.type === 'date' && <ThemedText>Date: {new Date(trigger.value).toLocaleString()}</ThemedText>}
+                <ThemedText>{t("reminders.cardFields.type")}: {trigger.type}</ThemedText>
+                {trigger.type === 'weekly' && <ThemedText>{t("reminders.cardFields.weekDay")}: {weekdayDataString[trigger.weekday]}</ThemedText>}
+                {trigger.type === 'monthly' && <ThemedText>{t("reminders.cardFields.day")}: {trigger.day}</ThemedText>}
+                {trigger.type !== 'date' && <ThemedText>{t("reminders.cardFields.time")}: {trigger.hour}:{String(trigger.minute).padStart(2, '0')}</ThemedText>}
+                {trigger.type === 'date' && <ThemedText>{t("reminders.cardFields.date")}: {new Date(trigger.value).toLocaleString()}</ThemedText>}
             </>
         );
     };
@@ -99,11 +110,11 @@ const Reminders = () => {
                 <Spacer/>
 
                 <ThemedText title={true} style={styles.heading}>
-                    Your Reminders List
+                    {t("reminders.headers.pageHeader")}
                 </ThemedText>
 
                 {notifications.length === 0 && (
-                    <ThemedText>No scheduled notifications</ThemedText>
+                    <ThemedText>{t("reminders.misc.emptyNotifs")}</ThemedText>
                 )}
 
                 {notifications.length !== 0 &&
@@ -124,11 +135,11 @@ const Reminders = () => {
                                 </ThemedText>
 
                                 <ThemedText>
-                                    Type: {notif.trigger.type}
+                                    {t("reminders.cardFields.type")}: {notif.trigger.type}
                                 </ThemedText>
 
                                 {notif.trigger.type !== 'date' && <ThemedText>
-                                    Time: {notif.trigger.hour }: {String(notif.trigger.minute).padStart(2, '0')}
+                                    {t("reminders.cardFields.time")}: {notif.trigger.hour }: {String(notif.trigger.minute).padStart(2, '0')}
                                 </ThemedText>}
 
                                 {notif.trigger.type === 'date' && <ThemedText>
@@ -144,7 +155,7 @@ const Reminders = () => {
                 {notifications.length > 0 && (
                     <ThemedButton warning onPress={() => setDelAllWin(true)}>
                         <Text style={{ color: 'white', fontSize: 16, fontWeight: 500 }}>
-                            Delete all notifications
+                            {t("reminders.buttons.delAllBtn")}
                         </Text>
                     </ThemedButton>
                 )}
@@ -167,7 +178,7 @@ const Reminders = () => {
                             ]}
                         >
                             <ThemedText style={[styles.modalText, { fontSize: 25 }]}>
-                                Notification Details
+                                {t("reminders.headers.notifDetails")}
                             </ThemedText>
                             
                             {/* only render when a notification is selected */}
@@ -179,8 +190,8 @@ const Reminders = () => {
 
                             {/* button section with delete and cancel options */}
                             <ModalButtons
-                                subText={'Delete'}
-                                cancText={'Cancel'}
+                                subText={t("common.del")}
+                                cancText={t("common.cancel")}
                                 onSubmit={handleDeleteOne}
                                 onCancel={()=>{setDetailWin(false)}}
                             />
@@ -199,12 +210,12 @@ const Reminders = () => {
                     <View style={styles.centeredView}>
                         <View style={[styles.modalView, { backgroundColor: theme.navBackground }]}>
                             <ThemedText style={[styles.modalText, { fontSize: 25, fontWeight: 500 }]}>
-                                Delete all notifications?
+                                {t("reminders.headers.dellAllHeader")}
                             </ThemedText>
 
                             <ModalButtons
-                                subText={'Delete'}
-                                cancText={'Cancel'}
+                                subText={t("common.del")}
+                                cancText={t("common.cancel")}
                                 onSubmit={handleDeleteAll}
                                 onCancel={()=>{setDelAllWin(false)}}
                             />

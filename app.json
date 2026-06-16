@@ -47,7 +47,8 @@
         {
           "visibility": "hidden"
         }
-      ]
+      ],
+      "expo-localization"
     ],
     "extra": {
       "router": {},

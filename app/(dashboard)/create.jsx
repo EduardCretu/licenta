@@ -5,6 +5,7 @@ import { StyleSheet, Text, View, ScrollView, TouchableWithoutFeedback, Keyboard,
 import * as Notifications from 'expo-notifications'
 // context-hook imports
 import { useTheme } from '../../contexts/ThemeContext'
+import { useTranslation } from "react-i18next"
 // custom component imports
 import Spacer from "../../components/Spacer"
 import ThemedText from "../../components/ThemedText"
@@ -14,7 +15,7 @@ import ThemedButton from "../../components/ThemedButton"
 import ThemedDropdownComponent from "../../components/ThemedDropdown"
 import { Colors } from '../../constants/colors'
 // import data for dropdown menus from constants
-import { notificationTypeData, minuteData, hourData, weekdayData, monthData, monthlyDayData } from '../../constants/dropdownFields'
+import { minuteData, hourData, monthlyDayData } from '../../constants/dropdownFields'
 
 // async function to check & request system permissions for notifications
 async function requestPermissions() {
@@ -62,23 +63,55 @@ const Create = () => {
 
     // theme related const
     const { theme } = useTheme()
+    const { t } = useTranslation()
+
+    const notificationTypeData = [
+        { label: '...', value: null },
+        { label: t("create.dropdownFields.mainModes.oneTime"), value: 5 },
+        { label: t("create.dropdownFields.mainModes.daily"), value: 2 },
+        { label: t("create.dropdownFields.mainModes.weekly"), value: 3 },
+        { label: t("create.dropdownFields.mainModes.monthly"), value: 4 },
+    ]
+    const weekdayData = [
+        { label: t("create.dropdownFields.weeklyDays.sunday"), value: 1 },
+        { label: t("create.dropdownFields.weeklyDays.monday"), value: 2 },
+        { label: t("create.dropdownFields.weeklyDays.tuesday"), value: 3 },
+        { label: t("create.dropdownFields.weeklyDays.wednesday"), value: 4 },
+        { label: t("create.dropdownFields.weeklyDays.thursday"), value: 5 },
+        { label: t("create.dropdownFields.weeklyDays.friday"), value: 6 },
+        { label: t("create.dropdownFields.weeklyDays.saturday"), value: 7 },
+    ]
+    const monthData = [
+        { label: t("create.dropdownFields.months.january"), value: 1 },
+        { label: t("create.dropdownFields.months.february"), value: 2 },
+        { label: t("create.dropdownFields.months.march"), value: 3 },
+        { label: t("create.dropdownFields.months.april"), value: 4 },
+        { label: t("create.dropdownFields.months.may"), value: 5 },
+        { label: t("create.dropdownFields.months.june"), value: 6 },
+        { label: t("create.dropdownFields.months.july"), value: 7 },
+        { label: t("create.dropdownFields.months.august"), value: 8 },
+        { label: t("create.dropdownFields.months.september"), value: 9 },
+        { label: t("create.dropdownFields.months.october"), value: 10 },
+        { label: t("create.dropdownFields.months.november"), value: 11 },
+        { label: t("create.dropdownFields.months.december"), value: 12 },
+    ]
 
 
 
     // function to validate dropdown fields
     function validateNotificationForm() {
         let errMessage = ""
-        if(!title.trim()) {errMessage += "Please enter a notification title\n"}
-        if(hour === null) {errMessage += "Choose value from 'Hour' field\n"}
-        if(minute === null) {errMessage += "Choose value from 'Minute' field\n"}
-        if(notificationType === 3 && weekday === null) {errMessage += "Choose value from 'Week day' field\n"}
-        if(notificationType === 4 && day === null) {errMessage += "Choose value from 'Day' field\n"}
+        if(!title.trim()) {errMessage += t("create.errMsg.notifTitle")}
+        if(hour === null) {errMessage += t("create.errMsg.notifHr")}
+        if(minute === null) {errMessage += t("create.errMsg.notifMin")}
+        if(notificationType === 3 && weekday === null) {errMessage += t("create.errMsg.notifWeekDay")}
+        if(notificationType === 4 && day === null) {errMessage += t("create.errMsg.notifDay")}
         if (notificationType === 5) {
             if (month === null) {
-                errMessage += "Choose value from 'Month' field\n"
+                errMessage += t("create.errMsg.notifMonth")
             }
             if (day === null) {
-                errMessage += "Choose value from 'Day' field\n"
+                errMessage += t("create.errMsg.notifDay")
             }
         }
         // return accumulated errors
@@ -200,7 +233,7 @@ const Create = () => {
 
                     {/*Header*/}
                     <ThemedText title={true} style={styles.header}>
-                        Schedule Notification
+                        {t("create.headers.notifSchedule")}
                     </ThemedText>
 
                     <Spacer height={20}/>
@@ -208,11 +241,11 @@ const Create = () => {
 
                     {/*Notification title label and input field*/}
                     <ThemedText>
-                        Notification Title
+                        {t("create.headers.notifTitle")}
                     </ThemedText>
 
                     <ThemedTextInput
-                        placeholder='Notification Name'
+                        placeholder={t("create.placeholders.notifTitle")}
                         style={styles.txtInput}
                         autoCorrect={false}
                         autoComplete={'off'}
@@ -222,11 +255,11 @@ const Create = () => {
 
                     {/*Notification Body label and input field*/}
                     <ThemedText>
-                        Notification Body
+                        {t("create.headers.notifBody")}
                     </ThemedText>
 
                     <ThemedTextInput
-                        placeholder='Notification Body'
+                        placeholder={t("create.placeholders.notifBody")}
                         style={styles.txtInput}
                         autoCorrect={false}
                         autoComplete={'off'}
@@ -236,7 +269,7 @@ const Create = () => {
 
                     {/*Dropdown subsection where the magic happens*/}
                     <ThemedText>
-                        Notification Type
+                        {t("create.headers.notifType")}
                     </ThemedText>
                     {/*Custom Themed component with custom {props} passed to manipulate a generalized version of a component*/}
                     <ThemedDropdownComponent
@@ -260,12 +293,12 @@ const Create = () => {
                         }}
                     />
                     {/*if null, display text suggesting that user should pick notification type*/}
-                    {(notificationType === null) && <ThemedText style={{margin: 20}}>Select A Notification Type</ThemedText>}
+                    {(notificationType === null) && <ThemedText style={{margin: 20}}>{t("create.misc.emptyNotif")}</ThemedText>}
 
                     {/*sub-dropdown fields, each only rendering when appropriate for the notification type*/}
                     {(notificationType === 5) && <View style={[styles.fieldContainer, {backgroundColor: theme.uiBackground}]}>
                         <ThemedText style={styles.label}>
-                            Month:
+                            {t("create.dropdownFields.subDropdownNames.month")}
                         </ThemedText>
                         <ThemedDropdownComponent
                             data={monthData}
@@ -285,7 +318,7 @@ const Create = () => {
                     </View>}
                     {(notificationType === 4 || notificationType === 5) && <View style={[styles.fieldContainer, {backgroundColor: theme.uiBackground}]}>
                         <ThemedText style={styles.label}>
-                            Day:
+                            {t("create.dropdownFields.subDropdownNames.day")}
                         </ThemedText>
                         <ThemedDropdownComponent
                             data={(notificationType === 4) ? monthlyDayData : dayData}
@@ -302,7 +335,7 @@ const Create = () => {
                     </View>}
                     {(notificationType === 3) && <View style={[styles.fieldContainer, {backgroundColor: theme.uiBackground}]}>
                         <ThemedText style={styles.label}>
-                            Week day:
+                            {t("create.dropdownFields.subDropdownNames.weekDay")}
                         </ThemedText>
                         <ThemedDropdownComponent
                             data={weekdayData}
@@ -319,7 +352,7 @@ const Create = () => {
                     </View>}
                     {(notificationType >= 2) && <View style={[styles.fieldContainer, {backgroundColor: theme.uiBackground}]}>
                         <ThemedText style={styles.label}>
-                            Hour:
+                            {t("create.dropdownFields.subDropdownNames.hour")}
                         </ThemedText>
                         <ThemedDropdownComponent
                             data={hourData}
@@ -336,7 +369,7 @@ const Create = () => {
                     </View>}
                     {(notificationType !== null) && <View style={[styles.fieldContainer, {backgroundColor: theme.uiBackground}]}>
                         <ThemedText style={styles.label}>
-                            Minute:
+                            {t("create.dropdownFields.subDropdownNames.minute")}
                         </ThemedText>
                         <ThemedDropdownComponent
                             data={minuteData}
@@ -367,7 +400,7 @@ const Create = () => {
                     {/*submission button only appears if notificationType is valid value*/}
                     {(notificationType !== null) && <ThemedButton primary onPress={handlePress}>
                         <Text style={{ color: 'white', fontWeight: 500, fontSize: 16 }}>
-                            Schedule Notification
+                            {t("create.buttons.scheduleNotifBtn")}
                         </Text>
                     </ThemedButton>}
                 </ThemedView>

@@ -4,6 +4,7 @@ import { Link } from 'expo-router'
 import { useState } from 'react'
 import { useUser } from '../../contexts/UserContext'
 import { useTheme } from '../../contexts/ThemeContext'
+import { useTranslation } from 'react-i18next'
 //Themed components
 import ThemedView from '../../components/ThemedView'
 import ThemedText from '../../components/ThemedText'
@@ -24,6 +25,7 @@ const Register = () => {
     const { register } = useUser()
 
     const { theme } = useTheme()
+    const { t } = useTranslation()
 
     // function that uses and calls appwrite 'register' function from their auth API
     const submitHandler = async () =>{
@@ -41,10 +43,10 @@ const Register = () => {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <ThemedView safe style={styles.container}>
                 <Spacer/>
-                <ThemedText title style={styles.title}>Register for an account</ThemedText>
+                <ThemedText title style={styles.title}>{t("register.pageHeader")}</ThemedText>
                 {/* vv-- email input field. May change to username*/}
                 <ThemedTextInput
-                    placeholder='Email'
+                    placeholder={t("register.email")}
                     style={styles.txtInput}
                     keyboardType= "Email-address"
                     autoCorrect={false}
@@ -54,7 +56,7 @@ const Register = () => {
                 />
                 {/* vv-- password input field */}
                 <ThemedSecuredTextInput
-                    placeholder='Password'
+                    placeholder={t("register.passwd")}
                     styleView={{marginBottom:10}}
                     onChangeText={setPassword}
                     value={password}
@@ -67,7 +69,7 @@ const Register = () => {
                     style={{width: '40%'}}
                     onPress={submitHandler}
                 >
-                    <Text style={{color: '#f2f2f2', textAlign: 'center'}}>Register</Text>
+                    <Text style={{color: '#f2f2f2', textAlign: 'center'}}>{t("register.registerBtn")}</Text>
                 </ThemedButton>
 
                 <Spacer/>
@@ -82,7 +84,7 @@ const Register = () => {
                     href='/login'
                 >
                     <ThemedText style={{ textAlign: "center" }}>
-                        Have an account already? Login instead
+                        {t("register.loginLink")}
                     </ThemedText>
                 </Link>
 

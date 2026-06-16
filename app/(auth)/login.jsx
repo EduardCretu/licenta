@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useState } from 'react'
 import { useUser } from '../../contexts/UserContext'
 import { useTheme } from '../../contexts/ThemeContext'
+import { useTranslation } from 'react-i18next'
 //Themed components
 import ThemedView from '../../components/ThemedView'
 import ThemedText from '../../components/ThemedText'
@@ -25,6 +26,7 @@ const Login = () => {
     // Consuming context
     const { login } = useUser()
     const { theme } = useTheme()
+    const { t } = useTranslation()
 
     // little function which tries to login in user based on email and password
     const submitHandler = async () => {
@@ -42,10 +44,10 @@ const Login = () => {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <ThemedView safe style={styles.container}>
                 <Spacer/>
-                <ThemedText title style={styles.title}>Log in to your account</ThemedText>
+                <ThemedText title style={styles.title}>{t("login.pageHeader")}</ThemedText>
 
                 <ThemedTextInput
-                    placeholder='Email'
+                    placeholder={t("login.email")}
                     style={styles.txtInput}
                     keyboardType= "Email-address"
                     autoCorrect={false}
@@ -54,7 +56,7 @@ const Login = () => {
                     value={email}
                 />
                 <ThemedSecuredTextInput
-                    placeholder='Password'
+                    placeholder={t("login.passwd")}
                     styleView={{marginBottom:10}}
                     onChangeText={setPassword}
                     value={password}
@@ -65,7 +67,7 @@ const Login = () => {
                     href='/forgotPassword'
                 >
                     <ThemedText style={{ textAlign: "center" }}>
-                        Forgot your password?
+                        {t("login.forgotLink")}
                     </ThemedText>
                 </Link>
                 <Spacer/>
@@ -76,7 +78,7 @@ const Login = () => {
                     style={{width: '40%'}}
                     onPress={submitHandler}
                 >
-                    <Text style={{color: '#f2f2f2', textAlign: 'center'}}>Login</Text>
+                    <Text style={{color: '#f2f2f2', textAlign: 'center'}}>{t("login.loginBtn")}</Text>
                 </ThemedButton>
 
                 <Spacer/>
@@ -92,7 +94,7 @@ const Login = () => {
                     href='/register'
                 >
                     <ThemedText style={{ textAlign: "center"}}>
-                        Dont have an account? register instead
+                        {t("login.registerLink")}
                     </ThemedText>
                 </Link>
                 <Spacer/>

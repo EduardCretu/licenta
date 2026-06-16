@@ -7,7 +7,7 @@ import { useMedInfo } from "./MedInfoContext";
 import { useDepInfo } from "./DependentInfoContext";
 
 // creating the context
-export const UserContext = createContext();
+const UserContext = createContext();
 
 // the provider
 export function UserProvider({ children }) {

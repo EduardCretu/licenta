@@ -2,11 +2,13 @@ import { Tabs } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import UserOnly from '../../components/(auth)/UserOnly'
 import { useTheme } from '../../contexts/ThemeContext'
+import { useTranslation } from "react-i18next"
 
 // Layout of the Dashboard & Dashboard pages
 const DashboardLayout = () => {
     // calling theme from context to paint dashboard elements in appropriate theme
     const { theme } = useTheme()
+    const { t } = useTranslation()
 
     return (
         <UserOnly>
@@ -25,7 +27,7 @@ const DashboardLayout = () => {
                 <Tabs.Screen // 'Tab; connected to specific /dashboard page
                     name="reminders"
                     options={{
-                        title: 'Reminders',
+                        title: t("dashboard.reminders"),
                         tabBarIcon: ({ focused }) => (
                             <Ionicons
                                 size={focused ? 28 : 24}
@@ -39,7 +41,7 @@ const DashboardLayout = () => {
                 <Tabs.Screen
                     name="create"
                     options={{
-                        title: 'Create',
+                        title: t("dashboard.create"),
                         tabBarIcon: ({ focused }) => (
                             <Ionicons
                                 size={focused ? 32 : 28}
@@ -53,7 +55,7 @@ const DashboardLayout = () => {
                 <Tabs.Screen
                     name="profile"
                     options={{
-                        title: 'Me',
+                        title: t("dashboard.profile"),
                         tabBarIcon: ({ focused }) => (
                             <Ionicons
                                 size={focused ? 28 : 24}
@@ -67,7 +69,7 @@ const DashboardLayout = () => {
                 <Tabs.Screen
                     name="settings"
                     options={{
-                        title: 'Settings',
+                        title: t("dashboard.settings"),
                         tabBarIcon: ({ focused }) => (
                             <Ionicons
                                 size={focused ? 28 : 24}
